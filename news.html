@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de News DUX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="header-left">
+      <h1>Gerador de News DUX</h1>
+      <p>Crie blocos de conteúdo que se distribuem automaticamente em 2 colunas no desktop.</p>
+    </div>
+    <a href="index.html" class="header-back">← Voltar ao início</a>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="save-name" class="toolbar-input" placeholder="Nome da news (ex: News Dezembro 2025)">
+    <select id="load-select"></select>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-success" id="btn-save">Salvar</button>
+    <button class="btn btn-secondary" id="btn-new">Nova</button>
+    <button class="btn btn-danger" id="btn-delete">Excluir</button>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-ghost" id="btn-export" title="Baixar todas as news em .json">⤓ Exportar</button>
+    <button class="btn btn-ghost" id="btn-import" title="Restaurar news de um .json">⤴ Importar</button>
+    <input type="file" id="file-import" accept=".json" style="display:none;">
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Quadros da news</div>
+        <button class="btn btn-primary" id="btn-add-card">+ Novo quadro</button>
+      </div>
+      <div class="panel-body">
+
+        <div class="info-box">
+          Cada <strong>quadro</strong> vira um card branco no resultado. Os quadros se distribuem em <strong>2 colunas no desktop</strong> e <strong>1 coluna no mobile</strong>, automaticamente. Você pode reordená-los com as setas ↑↓.
+        </div>
+
+        <div id="cards-list"></div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="tabs">
+          <button class="tab active" data-view="preview">Preview</button>
+          <button class="tab" data-view="code">Código</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" id="btn-download">⤓ Baixar HTML</button>
+          <button class="btn btn-primary" id="btn-copy">📋 Copiar HTML</button>
+        </div>
+      </div>
+      <div class="preview-container" id="preview-pane"><iframe id="preview-frame"></iframe></div>
+      <div class="code-container" id="code-pane" style="display:none;"></div>
+    </div>
+
+  </div>
+
+  <p class="footer">CSS inline + Barlow do Google Fonts. Compatível com qualquer plataforma de site.</p>
+</div>
+
+<!-- Modal de link -->
+<div class="modal-backdrop" id="link-modal">
+  <div class="modal">
+    <h3 id="link-modal-title">Inserir link</h3>
+    <div class="field">
+      <label class="field-label">Texto exibido</label>
+      <input type="text" id="link-text" placeholder="Ex.: clique aqui">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="field-label">URL</label>
+      <input type="text" id="link-url" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="link-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="link-save">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ====== ESTADO ======
+  // Cada card: { id, title, contentHtml }
+  let cards = [];
+  let nextId = 1;
+
+  function newCard(title, contentHtml) {
+    return { id: nextId++, title: title || '', contentHtml: contentHtml || '' };
+  }
+
+  // ====== RENDERIZAR LISTA DE CARDS (FORMULÁRIO) ======
+  function renderCardsList() {
+    const list = $('#cards-list');
+    list.innerHTML = '';
+
+    if (cards.length === 0) {
+      list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#94a3b8;font-size:14px;">
+        Nenhum quadro. Clique em <strong>+ Novo quadro</strong> acima para começar.
+      </div>`;
+      return;
+    }
+
+    cards.forEach((card, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'news-card-form';
+      wrap.dataset.cardId = card.id;
+      wrap.innerHTML = `
+        <div class="news-card-header">
+          <div class="news-card-num">QUADRO ${idx + 1}</div>
+          <div class="news-card-actions">
+            <button data-action="up" ${idx === 0 ? 'disabled' : ''} title="Subir">↑</button>
+            <button data-action="down" ${idx === cards.length - 1 ? 'disabled' : ''} title="Descer">↓</button>
+            <button data-action="remove" class="danger" title="Remover quadro">×</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Título</label>
+          <input type="text" class="card-title" value="${escapeAttr(card.title)}" placeholder="Título do quadro">
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+          <label class="field-label">Conteúdo</label>
+          <div class="editor-toolbar">
+            <button type="button" class="tb-btn" data-cmd="bold" title="Negrito"><strong>B</strong></button>
+            <button type="button" class="tb-btn" data-cmd="italic" title="Itálico"><em>I</em></button>
+            <button type="button" class="tb-btn" data-cmd="insertUnorderedList" title="Lista">≡</button>
+            <div class="tb-sep"></div>
+            <button type="button" class="tb-btn" data-action="link" title="Inserir/editar link">🔗</button>
+            <button type="button" class="tb-btn" data-action="unlink" title="Remover link">⛌</button>
+          </div>
+          <div class="editor" contenteditable="true" data-placeholder="Escreva o conteúdo do quadro aqui..."></div>
+        </div>
+      `;
+      list.appendChild(wrap);
+
+      const editorEl = wrap.querySelector('.editor');
+      editorEl.innerHTML = card.contentHtml || '';
+
+      // ====== BIND EVENTOS DO CARD ======
+      const titleInput = wrap.querySelector('.card-title');
+      titleInput.addEventListener('input', () => {
+        const c = cards.find(x => x.id === card.id);
+        if (c) c.title = titleInput.value;
+        updateOutput();
+      });
+
+      RichEditor.init(editorEl, () => {
+        const c = cards.find(x => x.id === card.id);
+        if (c) c.contentHtml = editorEl.innerHTML;
+        updateOutput();
+      });
+
+      // Botões de formatação
+      wrap.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => e.preventDefault());
+        btn.addEventListener('click', () => {
+          RichEditor.applyCmd(btn.dataset.cmd, editorEl, () => {
+            const c = cards.find(x => x.id === card.id);
+            if (c) c.contentHtml = editorEl.innerHTML;
+            updateOutput();
+          });
+          RichEditor.updateToolbarState(wrap.querySelectorAll('.tb-btn[data-cmd]'));
+        });
+      });
+
+      // Ações de link
+      wrap.querySelector('[data-action="link"]').addEventListener('mousedown', (e) => e.preventDefault());
+      wrap.querySelector('[data-action="link"]').addEventListener('click', () => {
+        LinkModal.open(editorEl, () => {
+          const c = cards.find(x => x.id === card.id);
+          if (c) c.contentHtml = editorEl.innerHTML;
+          updateOutput();
+        });
+      });
+      wrap.querySelector('[data-action="unlink"]').addEventListener('mousedown', (e) => e.preventDefault());
+      wrap.querySelector('[data-action="unlink"]').addEventListener('click', () => {
+        LinkModal.unlink(editorEl, () => {
+          const c = cards.find(x => x.id === card.id);
+          if (c) c.contentHtml = editorEl.innerHTML;
+          updateOutput();
+        });
+      });
+
+      // Atalhos de teclado
+      editorEl.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+          e.preventDefault();
+          RichEditor.applyCmd('bold', editorEl, () => {
+            const c = cards.find(x => x.id === card.id);
+            if (c) c.contentHtml = editorEl.innerHTML;
+            updateOutput();
+          });
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
+          e.preventDefault();
+          RichEditor.applyCmd('italic', editorEl, () => {
+            const c = cards.find(x => x.id === card.id);
+            if (c) c.contentHtml = editorEl.innerHTML;
+            updateOutput();
+          });
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          LinkModal.open(editorEl, () => {
+            const c = cards.find(x => x.id === card.id);
+            if (c) c.contentHtml = editorEl.innerHTML;
+            updateOutput();
+          });
+        }
+      });
+
+      // Ações de header do card
+      wrap.querySelector('[data-action="up"]')?.addEventListener('click', () => moveCard(card.id, -1));
+      wrap.querySelector('[data-action="down"]')?.addEventListener('click', () => moveCard(card.id, 1));
+      wrap.querySelector('[data-action="remove"]')?.addEventListener('click', () => removeCard(card.id));
+    });
+  }
+
+  function moveCard(id, delta) {
+    const idx = cards.findIndex(c => c.id === id);
+    if (idx < 0) return;
+    const newIdx = idx + delta;
+    if (newIdx < 0 || newIdx >= cards.length) return;
+    [cards[idx], cards[newIdx]] = [cards[newIdx], cards[idx]];
+    renderCardsList();
+    updateOutput();
+  }
+
+  function removeCard(id) {
+    if (!confirm('Remover este quadro?')) return;
+    cards = cards.filter(c => c.id !== id);
+    renderCardsList();
+    updateOutput();
+  }
+
+  $('#btn-add-card').addEventListener('click', () => {
+    cards.push(newCard('', '<p>Conteúdo do quadro...</p>'));
+    renderCardsList();
+    updateOutput();
+    // scroll para o último adicionado
+    setTimeout(() => {
+      const last = $('#cards-list').lastElementChild;
+      last?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      last?.querySelector('.card-title')?.focus();
+    }, 50);
+  });
+
+  // ====== LINK MODAL ======
+  LinkModal.initModal();
+
+  // ====== GERAR HTML ======
+  function generateHtml() {
+    const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
+    const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
+
+    const validCards = cards.filter(c => (c.title.trim() || (c.contentHtml || '').replace(/<[^>]+>/g, '').trim()));
+
+    if (validCards.length === 0) {
+      return `<!-- News DUX (vazio) -->
+${fontBlock}
+<div style="max-width:1100px;margin:0 auto;padding:40px 20px;text-align:center;color:#94a3b8;font-family:${fontStack};">
+  Adicione quadros para gerar o conteúdo.
+</div>`;
+    }
+
+    // Cada card vira uma <td> dentro de uma <table> de 2 colunas
+    // No mobile, usamos display:block via inline + class via @media — mas como não podemos usar @media inline,
+    // usamos a técnica do "responsive email": width:100%; max-width:540px; min-width:300px; e o navegador quebra.
+    // Para garantir, usamos uma <table> externa com display:inline-block nos <td>s — assim funciona até em e-mail.
+
+    // ESTRATÉGIA: container flex que vira coluna em mobile via media query num <style> no topo.
+    // Como sua plataforma remove <style>, usamos uma técnica alternativa:
+    // tabela com 2 colunas no desktop, mas cada td tem max-width grande e min-width que força quebra natural em mobile.
+    // Melhor: usar inline-block com width calc.
+
+    // Solução robusta: cada card é um <div> com width:calc(50% - 10px) e display:inline-block + vertical-align:top.
+    // Em mobile (tela menor que ~640px), o conteúdo ainda fica em 2 colunas estreitas o que fica ruim.
+    // Então adicionamos um <style> com media query — e SE a plataforma remover, cai para flex com wrap.
+
+    const cardItemStyle = `display:inline-block;vertical-align:top;width:calc(50% - 10px);margin:0 4px 18px 4px;background-color:#ffffff;border-radius:14px;padding:24px 26px;font-family:${fontStack};color:#1a1a1a;box-sizing:border-box;`;
+    const titleStyle = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;margin:0 0 12px 0;line-height:1.3;`;
+    const contentWrapStyle = `font-family:${fontStack};font-size:16px;line-height:1.5;color:#1a1a1a;`;
+
+    // Card HTML usando uma tabela interna para o título (mais robusto que h2)
+    const cardsHtml = validCards.map(card => {
+      // Cria um editor virtual para serializar
+      const tmpDiv = document.createElement('div');
+      tmpDiv.innerHTML = card.contentHtml || '';
+      const contentInline = serializeEditorToInline(tmpDiv, fontStack, { boldUnderline: false });
+
+      return `  <div style="${cardItemStyle}">
+    <div style="${titleStyle}">${escapeHtml(card.title)}</div>
+    <div style="${contentWrapStyle}">${contentInline}</div>
+  </div>`;
+    }).join('\n');
+
+    // Media query num <style> minúsculo no topo, só para forçar 1 coluna em mobile.
+    // SE a plataforma remover, os cards continuam em "2 colunas" mas ficam estreitos demais no mobile —
+    // ainda visíveis e funcionais, só não ideais.
+    const mediaStyle = `<style>@media (max-width:640px){.dux-news-card{width:100% !important;display:block !important;margin:0 0 16px 0 !important;}}</style>`;
+
+    // Adicionamos a classe dux-news-card a cada card para o media query funcionar
+    const cardsHtmlWithClass = cardsHtml.replace(/<div style="display:inline-block/g, '<div class="dux-news-card" style="display:inline-block');
+
+    return `<!-- News DUX -->
+${fontBlock}
+${mediaStyle}
+<div style="max-width:1100px;margin:0 auto;padding:8px 4px;background:transparent;font-family:${fontStack};font-size:0;text-align:left;">
+${cardsHtmlWithClass}
+</div>
+<!-- Fim News DUX -->`;
+  }
+
+  // ====== PREVIEW ======
+  let currentHtml = '';
+  function updateOutput() {
+    currentHtml = generateHtml();
+    const iframe = $('#preview-frame');
+    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#e5e5e5;margin:0;padding:20px;}</style></head><body>${currentHtml}</body></html>`;
+    $('#code-pane').textContent = currentHtml;
+  }
+
+  $$('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.dataset.view === 'preview') { $('#preview-pane').style.display = ''; $('#code-pane').style.display = 'none'; }
+      else { $('#preview-pane').style.display = 'none'; $('#code-pane').style.display = ''; }
+    });
+  });
+
+  $('#btn-copy').addEventListener('click', async () => {
+    await copyText(currentHtml);
+    showToast('HTML copiado!');
+  });
+
+  $('#btn-download').addEventListener('click', () => {
+    const full = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>News DUX</title><style>body { background: #e5e5e5; margin: 0; padding: 24px 0; min-height: 100vh; }</style></head><body>${currentHtml}</body></html>`;
+    const name = $('#save-name').value.trim() || 'news-dux';
+    downloadFile(full, name.replace(/[^a-zA-Z0-9-_]/g, '_') + '.html');
+    showToast('Arquivo baixado!');
+  });
+
+  // ====== SALVAR / CARREGAR ======
+  function getDataForSave() {
+    return {
+      cards: cards.map(c => ({ title: c.title, contentHtml: c.contentHtml }))
+    };
+  }
+
+  function loadData(data) {
+    nextId = 1;
+    if (Array.isArray(data.cards)) {
+      cards = data.cards.map(c => newCard(c.title, c.contentHtml));
+    } else {
+      cards = [];
+    }
+    renderCardsList();
+    updateOutput();
+  }
+
+  function newData() {
+    loadData({ cards: [
+      { title: 'Título do primeiro quadro', contentHtml: '<p>Escreva o conteúdo aqui. Você pode usar <strong>negrito</strong>, <em>itálico</em>, listas e links.</p>' }
+    ]});
+  }
+
+  initSaveToolbar({
+    key: 'dux_news',
+    getDataFn: getDataForSave,
+    loadDataFn: loadData,
+    newDataFn: newData,
+    fileNamePrefix: 'news-dux'
+  });
+
+  // ====== INICIALIZAR (com exemplo de 4 cards) ======
+  loadData({
+    cards: [
+      {
+        title: 'Por que o IMC já não basta?',
+        contentHtml: '<p>O Índice de Massa Corporal sempre foi um método simples para avaliar o peso corporal, mas suas limitações têm se tornado cada vez mais evidentes. Entre os principais pontos:</p><ul><li>Não diferencia massa muscular de gordura corporal.</li><li>Não avalia a distribuição da gordura.</li></ul><p>Essas falhas têm levado a diagnósticos imprecisos, prejudicando intervenções clínicas e o sucesso do tratamento.</p>'
+      },
+      {
+        title: 'O que muda para nutricionistas?',
+        contentHtml: '<p>Com as novas diretrizes, o nutricionista ganha ferramentas mais robustas para compreender a real condição corporal do paciente. Incorporar esses métodos ao protocolo de atendimento contribui para:</p><ul><li>avaliações mais completas</li><li>terapias mais eficientes</li><li>decisões clínicas baseadas em evidências</li><li>prevenção mais eficaz das doenças relacionadas à obesidade</li></ul><p>A atualização é um passo essencial para profissionais que desejam oferecer mais precisão, ciência e qualidade no cuidado nutricional.</p>'
+      },
+      {
+        title: 'Novas métricas para um diagnóstico mais preciso',
+        contentHtml: '<p>A partir de 2025, novas ferramentas serão incorporadas ao diagnóstico da obesidade, oferecendo uma avaliação mais completa da composição corporal. Entre as principais:</p><p><strong>Circunferência Abdominal</strong><br>Avalia gordura visceral, um dos fatores de risco mais relevantes para doenças cardiometabólicas.</p><p><strong>Razão Cintura-Quadril (RCQ)</strong><br>Ajuda a identificar padrões de distribuição de gordura, como o andróide, associado a maior risco à saúde.</p><p><strong>DEXA (Absorciometria por Dupla Emissão de Raios-X)</strong><br>Exame avançado que distingue massa muscular, gordura e densidade óssea, permitindo uma análise corporal detalhada.</p>'
+      },
+      {
+        title: 'Benefícios para a prática clínica',
+        contentHtml: '<p>A modernização dos critérios traz avanços importantes:</p><ul><li><strong>Diagnósticos mais precisos.</strong> Reduz erros, evitando tanto o subdiagnóstico quanto o superdiagnóstico.</li><li><strong>Tratamentos mais personalizados.</strong> Permite prescrever estratégias alinhadas ao perfil fisiológico de cada paciente.</li><li><strong>Maior atenção preventiva.</strong> Identifica riscos metabólicos mesmo em pacientes com IMC normal.</li></ul><p>Esses fatores fortalecem a qualidade do acompanhamento nutricional e ampliam os resultados clínicos.</p>'
+      }
+    ]
+  });
+
+})();
+</script>
+
+</body>
+</html>

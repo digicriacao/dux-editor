@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Receitas DUX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="header-left">
+      <h1>Gerador de Receitas DUX</h1>
+      <p>Crie cards de receita com tudo: ingredientes, modo de preparo, dificuldade.</p>
+    </div>
+    <a href="index.html" class="header-back">← Voltar ao início</a>
+  </header>
+
+  <!-- Toolbar de salvar/carregar -->
+  <div class="toolbar">
+    <input type="text" id="save-name" class="toolbar-input" placeholder="Nome da receita (ex: Pudim de chia)">
+    <select id="load-select"></select>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-success" id="btn-save">Salvar</button>
+    <button class="btn btn-secondary" id="btn-new">Nova</button>
+    <button class="btn btn-danger" id="btn-delete">Excluir</button>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-ghost" id="btn-export" title="Baixar todas as receitas em .json">⤓ Exportar</button>
+    <button class="btn btn-ghost" id="btn-import" title="Restaurar receitas de um .json">⤴ Importar</button>
+    <input type="file" id="file-import" accept=".json" style="display:none;">
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Dados da receita</div></div>
+      <div class="panel-body">
+
+        <div class="info-box">
+          <strong>Fonte Barlow</strong> via Google Fonts. <strong>Salvar/Carregar</strong> guarda no navegador — use <strong>Exportar</strong> para backup.
+        </div>
+
+        <div class="field">
+          <div class="row3">
+            <div>
+              <label class="field-label">Dificuldade</label>
+              <input type="text" id="f-difficulty" value="FÁCIL">
+            </div>
+            <div>
+              <label class="field-label">Preparo</label>
+              <input type="text" id="f-prep" value="2H05 A 4H05">
+            </div>
+            <div>
+              <label class="field-label">Rendimento</label>
+              <input type="text" id="f-yield" value="1 PORÇÃO">
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="field-label" style="margin:0;">Ingredientes</label>
+            <button class="btn-add" id="btn-add-ing">+ Adicionar</button>
+          </div>
+          <div id="ingredients-list"></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Modo de preparo</label>
+          <div class="editor-toolbar">
+            <button type="button" class="tb-btn" data-cmd="bold" title="Negrito (Ctrl+B)"><strong>B</strong></button>
+            <div class="tb-sep"></div>
+            <button type="button" class="tb-btn" id="btn-link" title="Inserir/editar link (Ctrl+K)">🔗</button>
+            <button type="button" class="tb-btn" id="btn-unlink" title="Remover link">⛌</button>
+            <div class="tb-hint">Negrito também sublinha (estilo DUX)</div>
+          </div>
+          <div class="editor receipe-style" id="editor" contenteditable="true" data-placeholder="Escreva o modo de preparo aqui..."></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="tabs">
+          <button class="tab active" data-view="preview">Preview</button>
+          <button class="tab" data-view="code">Código</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" id="btn-download">⤓ Baixar HTML</button>
+          <button class="btn btn-primary" id="btn-copy">📋 Copiar HTML</button>
+        </div>
+      </div>
+      <div class="preview-container" id="preview-pane"><iframe id="preview-frame"></iframe></div>
+      <div class="code-container" id="code-pane" style="display:none;"></div>
+    </div>
+
+  </div>
+
+  <p class="footer">CSS inline + Barlow do Google Fonts. Compatível com qualquer plataforma de site ou e-mail.</p>
+</div>
+
+<!-- Modal de link -->
+<div class="modal-backdrop" id="link-modal">
+  <div class="modal">
+    <h3 id="link-modal-title">Inserir link</h3>
+    <div class="field">
+      <label class="field-label">Texto exibido</label>
+      <input type="text" id="link-text" placeholder="Ex.: clique aqui">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="field-label">URL</label>
+      <input type="text" id="link-url" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="link-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="link-save">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ====== ESTADO ======
+  let ingredients = [];
+  const editor = $('#editor');
+
+  // ====== INGREDIENTES ======
+  function renderIngredients() {
+    const list = $('#ingredients-list');
+    list.innerHTML = '';
+    ingredients.forEach((ing, i) => {
+      const row = document.createElement('div');
+      row.className = 'ingredient-row';
+      row.innerHTML = `
+        <input type="text" value="${escapeAttr(ing)}" data-idx="${i}">
+        <button class="btn-icon" data-remove="${i}" ${ingredients.length===1?'disabled':''} title="Remover">×</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        ingredients[+e.target.dataset.idx] = e.target.value;
+        updateOutput();
+      });
+    });
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        ingredients.splice(+e.currentTarget.dataset.remove, 1);
+        renderIngredients();
+        updateOutput();
+      });
+    });
+  }
+
+  $('#btn-add-ing').addEventListener('click', () => {
+    ingredients.push('');
+    renderIngredients();
+    updateOutput();
+    const inputs = $('#ingredients-list').querySelectorAll('input');
+    inputs[inputs.length - 1].focus();
+  });
+
+  // ====== EDITOR ======
+  RichEditor.init(editor, updateOutput);
+
+  $$('.tb-btn[data-cmd]').forEach(btn => {
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', () => {
+      RichEditor.applyCmd(btn.dataset.cmd, editor, updateOutput);
+      updateToolbarState();
+    });
+  });
+
+  editor.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      RichEditor.applyCmd('bold', editor, updateOutput);
+      updateToolbarState();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault(); LinkModal.open(editor, updateOutput);
+    }
+  });
+
+  editor.addEventListener('mouseup', updateToolbarState);
+  editor.addEventListener('keyup', updateToolbarState);
+
+  function updateToolbarState() {
+    RichEditor.updateToolbarState($$('.tb-btn[data-cmd]'));
+  }
+
+  // ====== LINK ======
+  LinkModal.initModal();
+  $('#btn-link').addEventListener('mousedown', (e) => e.preventDefault());
+  $('#btn-link').addEventListener('click', () => LinkModal.open(editor, updateOutput));
+  $('#btn-unlink').addEventListener('mousedown', (e) => e.preventDefault());
+  $('#btn-unlink').addEventListener('click', () => LinkModal.unlink(editor, updateOutput));
+
+  // ====== GERAR HTML ======
+  function generateHtml() {
+    const difficulty = escapeHtml($('#f-difficulty').value);
+    const prep = escapeHtml($('#f-prep').value);
+    const yld = escapeHtml($('#f-yield').value);
+
+    const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
+    const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
+
+    // Ingredientes em <div> flex (sem <tr>)
+    const ingItems = ingredients.filter(i => i.trim()).map((ing, idx, arr) => {
+      const isLast = idx === arr.length - 1;
+      return `      <div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '14px'};font-family:${fontStack};">
+        <div style="flex-shrink:0;width:9px;height:9px;background-color:#0066ff;border-radius:50%;margin:9px 16px 0 4px;"></div>
+        <div style="flex:1;font-family:${fontStack};font-size:18px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
+      </div>`;
+    }).join('\n');
+
+    const prepHtml = serializeEditorToInline(editor, fontStack, { boldUnderline: true });
+
+    const cardStyle = `background-color:#ffffff;border-radius:18px;padding:28px;margin:0 auto 18px auto;max-width:720px;font-family:${fontStack};color:#1a1a1a;`;
+    const badgeStyle = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:22px;padding:8px 22px;border-radius:999px;margin-bottom:18px;`;
+    const wrapperStyle = `max-width:720px;margin:0 auto;padding:16px;background:transparent;font-family:${fontStack};`;
+
+    // Cabeçalho: ícone branco em círculo azul + label pequeno + valor grande
+    const headerCellStyle = (border) => `width:33.33%;padding:0 16px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:middle;font-family:${fontStack};`;
+    const iconCircleStyle = `width:42px;height:42px;background-color:#0066ff;border-radius:50%;text-align:center;line-height:42px;vertical-align:middle;`;
+    const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:11px;color:#888888;letter-spacing:1.5px;margin-bottom:2px;display:block;text-transform:uppercase;`;
+    const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;line-height:1.1;display:block;`;
+
+    const iconChef = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>`;
+    const iconTimer = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M9 2h6"/></svg>`;
+    const iconUtensils = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`;
+
+    const headerCell = (icon, label, value, padStart, padEnd, border) => `
+        <td style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+            <tr>
+              <td style="vertical-align:middle;padding-right:12px;">
+                <div style="${iconCircleStyle}">${icon}</div>
+              </td>
+              <td style="vertical-align:middle;">
+                <span style="${iconLabelStyle}">${label}</span>
+                <span style="${iconValueStyle}">${value}</span>
+              </td>
+            </tr>
+          </table>
+        </td>`;
+
+    return `<!-- Receita DUX -->
+${fontBlock}
+<div style="${wrapperStyle}">
+
+  <div style="${cardStyle}padding:24px 28px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+      <tr>${headerCell(iconChef, 'DIFICULDADE', difficulty, true, false, true)}${headerCell(iconTimer, 'PREPARO', prep, false, false, true)}${headerCell(iconUtensils, 'RENDIMENTO', yld, false, true, false)}
+      </tr>
+    </table>
+  </div>
+
+  <div style="${cardStyle}">
+    <div style="${badgeStyle}">Ingredientes</div>
+    <div style="font-family:${fontStack};">
+${ingItems}
+    </div>
+  </div>
+
+  <div style="${cardStyle}">
+    <div style="${badgeStyle}">Modo de preparo</div>
+    <div style="font-family:${fontStack};">
+${prepHtml}
+    </div>
+  </div>
+
+  <div style="${cardStyle}padding:24px 28px;text-align:center;">
+    <a href="https://www.duxhumanhealth.com/collagen-advanced/p" target="_blank" rel="noopener" style="display:inline-block;color:#0066ff;font-family:${fontStack};font-weight:700;font-size:17px;text-decoration:none;border-bottom:2px solid #0066ff;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
+  </div>
+
+</div>
+<!-- Fim Receita DUX -->`;
+  }
+
+  // ====== PREVIEW / CÓDIGO ======
+  let currentHtml = '';
+  function updateOutput() {
+    currentHtml = generateHtml();
+    const iframe = $('#preview-frame');
+    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#e5e5e5;margin:0;padding:20px 0;}</style></head><body>${currentHtml}</body></html>`;
+    $('#code-pane').textContent = currentHtml;
+  }
+
+  $$('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.dataset.view === 'preview') { $('#preview-pane').style.display = ''; $('#code-pane').style.display = 'none'; }
+      else { $('#preview-pane').style.display = 'none'; $('#code-pane').style.display = ''; }
+    });
+  });
+
+  ['#f-difficulty', '#f-prep', '#f-yield'].forEach(s => {
+    $(s).addEventListener('input', updateOutput);
+  });
+
+  $('#btn-copy').addEventListener('click', async () => {
+    await copyText(currentHtml);
+    showToast('HTML copiado!');
+  });
+
+  $('#btn-download').addEventListener('click', () => {
+    const full = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receita DUX</title><style>body { background: #e5e5e5; margin: 0; padding: 24px 0; min-height: 100vh; }</style></head><body>${currentHtml}</body></html>`;
+    const name = $('#save-name').value.trim() || 'receita-dux';
+    downloadFile(full, name.replace(/[^a-zA-Z0-9-_]/g, '_') + '.html');
+    showToast('Arquivo baixado!');
+  });
+
+  // ====== SALVAR / CARREGAR ======
+  function getDataForSave() {
+    return {
+      difficulty: $('#f-difficulty').value,
+      prep: $('#f-prep').value,
+      yield: $('#f-yield').value,
+      ingredients: [...ingredients],
+      preparation: editor.innerHTML
+    };
+  }
+
+  function loadData(data) {
+    $('#f-difficulty').value = data.difficulty || 'FÁCIL';
+    $('#f-prep').value = data.prep || '';
+    $('#f-yield').value = data.yield || '';
+    ingredients = Array.isArray(data.ingredients) ? [...data.ingredients] : [''];
+    if (ingredients.length === 0) ingredients = [''];
+    editor.innerHTML = data.preparation || '';
+    renderIngredients();
+    updateOutput();
+  }
+
+  function newData() {
+    loadData({
+      difficulty: 'FÁCIL',
+      prep: '',
+      yield: '',
+      ingredients: [''],
+      preparation: '<p>Escreva o modo de preparo aqui...</p>'
+    });
+  }
+
+  initSaveToolbar({
+    key: 'dux_receitas',
+    getDataFn: getDataForSave,
+    loadDataFn: loadData,
+    newDataFn: newData,
+    fileNamePrefix: 'receitas-dux'
+  });
+
+  // ====== INICIALIZAR (com receita-exemplo) ======
+  loadData({
+    difficulty: 'FÁCIL',
+    prep: '2H05 A 4H05',
+    yield: '1 PORÇÃO',
+    ingredients: [
+      '3 colheres (sopa) de chia',
+      '1 xícara (chá) de leite ou bebida vegetal',
+      '1 porção ou sachê de Collagen Advanced DUX sabor Darkberries',
+      'Frutas para decorar'
+    ],
+    preparation: '<p>Misture a chia com a bebida escolhida e o <strong>Collagen Advanced</strong> até ficar homogêneo. Leve à geladeira por cerca de 4 horas, ou até adquirir consistência de pudim.</p><p><strong>Finalize decorando com as frutas de sua preferência.</strong></p>'
+  });
+
+})();
+</script>
+
+</body>
+</html>

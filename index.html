@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferramentas DUX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Barlow', 'Helvetica Neue', Arial, sans-serif; background: #f3f4f6; color: #0f172a; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .hub { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+  .hub-header { text-align: center; margin-bottom: 50px; }
+  .hub-header h1 { font-size: 36px; font-weight: 700; margin: 0 0 8px; }
+  .hub-header p { font-size: 16px; color: #64748b; margin: 0; }
+  .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .hub-grid { grid-template-columns: 1fr; } }
+  .hub-card {
+    display: block;
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+  }
+  .hub-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #0066ff; }
+  .hub-card-icon {
+    width: 56px; height: 56px; background: #0066ff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .hub-card-icon svg { width: 28px; height: 28px; stroke: #fff; }
+  .hub-card h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; }
+  .hub-card p { font-size: 14px; color: #64748b; margin: 0; line-height: 1.5; }
+  .hub-footer { text-align: center; margin-top: 40px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="hub">
+  <div class="hub-header">
+    <h1>Ferramentas DUX</h1>
+    <p>Geradores de HTML para o site DUX Human Health</p>
+  </div>
+
+  <div class="hub-grid">
+    <a href="receitas.html" class="hub-card">
+      <div class="hub-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>
+      </div>
+      <h2>Receitas</h2>
+      <p>Crie cards de receita com ingredientes, modo de preparo, dificuldade, tempo e rendimento.</p>
+    </a>
+
+    <a href="news.html" class="hub-card">
+      <div class="hub-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+      </div>
+      <h2>News</h2>
+      <p>Crie blocos de conteúdo distribuídos automaticamente em 2 colunas, com texto rico e listas.</p>
+    </a>
+  </div>
+
+  <div class="hub-footer">
+    Os dados são salvos no navegador. Use "Exportar" para gerar backup.
+  </div>
+</div>
+
+</body>
+</html>
