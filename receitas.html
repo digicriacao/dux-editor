@@ -213,16 +213,24 @@
     const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
     const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
 
-    // Media query para o mobile — mesma técnica do news, que já funcionou na plataforma
+    // Media query: desktop fica como está (ícone à esquerda), mobile vira ícone em cima centralizado.
+    // A técnica: o <td> do ícone vira display:block + text-align:center no mobile.
     const mediaStyle = `<style>
 @media (max-width:640px){
   .dux-recipe-wrap{padding:8px !important;}
-  .dux-recipe-card{padding:20px !important;border-radius:14px !important;}
-  .dux-meta-table,.dux-meta-row,.dux-meta-cell{display:block !important;width:100% !important;}
-  .dux-meta-cell{border-right:none !important;border-bottom:1px solid #e5e5e5;padding:14px 0 !important;}
-  .dux-meta-cell:last-child{border-bottom:none !important;}
-  .dux-meta-cell-first{padding-top:0 !important;}
-  .dux-meta-cell-last{padding-bottom:0 !important;}
+  .dux-recipe-card{padding:18px !important;border-radius:14px !important;}
+  .dux-meta-cell{padding:0 4px !important;vertical-align:top !important;}
+  .dux-meta-cell-first{padding-left:0 !important;}
+  .dux-meta-cell-last{padding-right:0 !important;}
+  .dux-meta-inner{display:block !important;width:100% !important;text-align:center !important;}
+  .dux-meta-inner > tbody > tr,
+  .dux-meta-inner > tr{display:block !important;}
+  .dux-meta-icon-td{display:block !important;padding:0 0 6px 0 !important;text-align:center !important;}
+  .dux-meta-icon-td > div{margin:0 auto !important;width:34px !important;height:34px !important;line-height:34px !important;}
+  .dux-meta-icon-td svg{width:16px !important;height:16px !important;}
+  .dux-meta-text-td{display:block !important;text-align:center !important;}
+  .dux-meta-label{font-size:9px !important;letter-spacing:1px !important;}
+  .dux-meta-value{font-size:13px !important;}
   .dux-badge{font-size:18px !important;padding:6px 18px !important;}
   .dux-ing-text,.dux-prep p,.dux-prep ul{font-size:16px !important;}
   .dux-cta-link{font-size:15px !important;}
@@ -244,9 +252,9 @@
     const badgeStyle = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:22px;padding:8px 22px;border-radius:999px;margin-bottom:18px;`;
     const wrapperStyle = `max-width:720px;margin:0 auto;padding:16px;background:transparent;font-family:${fontStack};`;
 
-    // Cabeçalho com classes para media query agir
-    const headerCellStyle = (border) => `width:33.33%;padding:0 16px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:middle;font-family:${fontStack};`;
-    const iconCircleStyle = `width:42px;height:42px;background-color:#0066ff;border-radius:50%;text-align:center;line-height:42px;vertical-align:middle;flex-shrink:0;`;
+    // Espaçamento desktop reduzido — itens mais próximos
+    const headerCellStyle = (border) => `width:33.33%;padding:0 10px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:middle;font-family:${fontStack};`;
+    const iconCircleStyle = `width:42px;height:42px;background-color:#0066ff;border-radius:50%;text-align:center;line-height:42px;vertical-align:middle;`;
     const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:11px;color:#888888;letter-spacing:1.5px;margin-bottom:2px;display:block;text-transform:uppercase;`;
     const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;line-height:1.1;display:block;`;
 
@@ -256,14 +264,14 @@
 
     const headerCell = (icon, label, value, padStart, padEnd, border, posClass) => `
         <td class="dux-meta-cell ${posClass}" style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
-          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+          <table class="dux-meta-inner" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
             <tr>
-              <td style="vertical-align:middle;padding-right:12px;">
+              <td class="dux-meta-icon-td" style="vertical-align:middle;padding-right:10px;">
                 <div style="${iconCircleStyle}">${icon}</div>
               </td>
-              <td style="vertical-align:middle;">
-                <span style="${iconLabelStyle}">${label}</span>
-                <span style="${iconValueStyle}">${value}</span>
+              <td class="dux-meta-text-td" style="vertical-align:middle;">
+                <span class="dux-meta-label" style="${iconLabelStyle}">${label}</span>
+                <span class="dux-meta-value" style="${iconValueStyle}">${value}</span>
               </td>
             </tr>
           </table>
