@@ -52,7 +52,7 @@
             </div>
             <div>
               <label class="field-label">Preparo</label>
-              <input type="text" id="f-prep" value="2H A 4H">
+              <input type="text" id="f-prep" value="2H05 A 4H05">
             </div>
             <div>
               <label class="field-label">Rendimento</label>
@@ -213,12 +213,28 @@
     const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
     const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
 
-    // Ingredientes em <div> flex (sem <tr>)
+    // Media query para o mobile — mesma técnica do news, que já funcionou na plataforma
+    const mediaStyle = `<style>
+@media (max-width:640px){
+  .dux-recipe-wrap{padding:8px !important;}
+  .dux-recipe-card{padding:20px !important;border-radius:14px !important;}
+  .dux-meta-table,.dux-meta-row,.dux-meta-cell{display:block !important;width:100% !important;}
+  .dux-meta-cell{border-right:none !important;border-bottom:1px solid #e5e5e5;padding:14px 0 !important;}
+  .dux-meta-cell:last-child{border-bottom:none !important;}
+  .dux-meta-cell-first{padding-top:0 !important;}
+  .dux-meta-cell-last{padding-bottom:0 !important;}
+  .dux-badge{font-size:18px !important;padding:6px 18px !important;}
+  .dux-ing-text,.dux-prep p,.dux-prep ul{font-size:16px !important;}
+  .dux-cta-link{font-size:15px !important;}
+}
+</style>`;
+
+    // Ingredientes em <div> flex
     const ingItems = ingredients.filter(i => i.trim()).map((ing, idx, arr) => {
       const isLast = idx === arr.length - 1;
       return `      <div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '14px'};font-family:${fontStack};">
         <div style="flex-shrink:0;width:9px;height:9px;background-color:#0066ff;border-radius:50%;margin:9px 16px 0 4px;"></div>
-        <div style="flex:1;font-family:${fontStack};font-size:18px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
+        <div class="dux-ing-text" style="flex:1;font-family:${fontStack};font-size:18px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
       </div>`;
     }).join('\n');
 
@@ -228,9 +244,9 @@
     const badgeStyle = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:22px;padding:8px 22px;border-radius:999px;margin-bottom:18px;`;
     const wrapperStyle = `max-width:720px;margin:0 auto;padding:16px;background:transparent;font-family:${fontStack};`;
 
-    // Cabeçalho: ícone branco em círculo azul + label pequeno + valor grande
+    // Cabeçalho com classes para media query agir
     const headerCellStyle = (border) => `width:33.33%;padding:0 16px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:middle;font-family:${fontStack};`;
-    const iconCircleStyle = `width:42px;height:42px;background-color:#0066ff;border-radius:50%;text-align:center;line-height:42px;vertical-align:middle;`;
+    const iconCircleStyle = `width:42px;height:42px;background-color:#0066ff;border-radius:50%;text-align:center;line-height:42px;vertical-align:middle;flex-shrink:0;`;
     const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:11px;color:#888888;letter-spacing:1.5px;margin-bottom:2px;display:block;text-transform:uppercase;`;
     const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;line-height:1.1;display:block;`;
 
@@ -238,8 +254,8 @@
     const iconTimer = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M9 2h6"/></svg>`;
     const iconUtensils = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`;
 
-    const headerCell = (icon, label, value, padStart, padEnd, border) => `
-        <td style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
+    const headerCell = (icon, label, value, padStart, padEnd, border, posClass) => `
+        <td class="dux-meta-cell ${posClass}" style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
           <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
             <tr>
               <td style="vertical-align:middle;padding-right:12px;">
@@ -255,31 +271,32 @@
 
     return `<!-- Receita DUX -->
 ${fontBlock}
-<div style="${wrapperStyle}">
+${mediaStyle}
+<div class="dux-recipe-wrap" style="${wrapperStyle}">
 
-  <div style="${cardStyle}padding:24px 28px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
-      <tr>${headerCell(iconChef, 'DIFICULDADE', difficulty, true, false, true)}${headerCell(iconTimer, 'PREPARO', prep, false, false, true)}${headerCell(iconUtensils, 'RENDIMENTO', yld, false, true, false)}
+  <div class="dux-recipe-card" style="${cardStyle}padding:24px 28px;">
+    <table role="presentation" class="dux-meta-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+      <tr class="dux-meta-row">${headerCell(iconChef, 'DIFICULDADE', difficulty, true, false, true, 'dux-meta-cell-first')}${headerCell(iconTimer, 'PREPARO', prep, false, false, true, '')}${headerCell(iconUtensils, 'RENDIMENTO', yld, false, true, false, 'dux-meta-cell-last')}
       </tr>
     </table>
   </div>
 
-  <div style="${cardStyle}">
-    <div style="${badgeStyle}">Ingredientes</div>
+  <div class="dux-recipe-card" style="${cardStyle}">
+    <div class="dux-badge" style="${badgeStyle}">Ingredientes</div>
     <div style="font-family:${fontStack};">
 ${ingItems}
     </div>
   </div>
 
-  <div style="${cardStyle}">
-    <div style="${badgeStyle}">Modo de preparo</div>
-    <div style="font-family:${fontStack};">
+  <div class="dux-recipe-card" style="${cardStyle}">
+    <div class="dux-badge" style="${badgeStyle}">Modo de preparo</div>
+    <div class="dux-prep" style="font-family:${fontStack};">
 ${prepHtml}
     </div>
   </div>
 
-  <div style="${cardStyle}padding:24px 28px;text-align:center;">
-    <a href="https://www.duxhumanhealth.com/collagen-advanced/p" target="_blank" rel="noopener" style="display:inline-block;color:#0066ff;font-family:${fontStack};font-weight:700;font-size:17px;text-decoration:none;border-bottom:2px solid #0066ff;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
+  <div class="dux-recipe-card" style="${cardStyle}padding:24px 28px;text-align:center;">
+    <a class="dux-cta-link" href="https://www.duxhumanhealth.com/collagen-advanced/p" target="_blank" rel="noopener" style="display:inline-block;color:#0066ff;font-family:${fontStack};font-weight:700;font-size:17px;text-decoration:none;border-bottom:2px solid #0066ff;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
   </div>
 
 </div>
@@ -363,7 +380,7 @@ ${prepHtml}
   // ====== INICIALIZAR (com receita-exemplo) ======
   loadData({
     difficulty: 'FÁCIL',
-    prep: '2H A 4H',
+    prep: '2H05 A 4H05',
     yield: '1 PORÇÃO',
     ingredients: [
       '3 colheres (sopa) de chia',
