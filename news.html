@@ -311,18 +311,26 @@ ${fontBlock}
   </div>`;
     }).join('\n');
 
-    // Media query num <style> minúsculo no topo, só para forçar 1 coluna em mobile.
-    // SE a plataforma remover, os cards continuam em "2 colunas" mas ficam estreitos demais no mobile —
-    // ainda visíveis e funcionais, só não ideais.
-    const mediaStyle = `<style>@media (max-width:640px){.dux-news-card{width:100% !important;display:block !important;margin:0 0 16px 0 !important;}}</style>`;
+    // Media query num <style> no topo, para mobile virar 1 coluna e reduzir paddings
+    const mediaStyle = `<style>
+@media (max-width:640px){
+  .dux-news-wrap{padding:8px !important;}
+  .dux-news-card{width:100% !important;display:block !important;margin:0 0 16px 0 !important;padding:20px !important;border-radius:14px !important;}
+  .dux-news-title{font-size:17px !important;}
+  .dux-news-content,.dux-news-content p,.dux-news-content ul{font-size:15px !important;}
+}
+</style>`;
 
-    // Adicionamos a classe dux-news-card a cada card para o media query funcionar
-    const cardsHtmlWithClass = cardsHtml.replace(/<div style="display:inline-block/g, '<div class="dux-news-card" style="display:inline-block');
+    // Adicionamos as classes para o media query funcionar
+    const cardsHtmlWithClass = cardsHtml
+      .replace(/<div style="display:inline-block/g, '<div class="dux-news-card" style="display:inline-block')
+      .replace(new RegExp('<div style="' + titleStyle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `<div class="dux-news-title" style="${titleStyle}`)
+      .replace(new RegExp('<div style="' + contentWrapStyle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `<div class="dux-news-content" style="${contentWrapStyle}`);
 
     return `<!-- News DUX -->
 ${fontBlock}
 ${mediaStyle}
-<div style="max-width:1100px;margin:0 auto;padding:8px 4px;background:transparent;font-family:${fontStack};font-size:0;text-align:left;">
+<div class="dux-news-wrap" style="max-width:1100px;margin:0 auto;padding:8px 4px;background:transparent;font-family:${fontStack};font-size:0;text-align:left;">
 ${cardsHtmlWithClass}
 </div>
 <!-- Fim News DUX -->`;
