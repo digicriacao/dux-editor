@@ -15,7 +15,7 @@ body {
 .header { margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
 .header-left h1 { font-size: 26px; font-weight: 700; margin: 0; color: #0f172a; }
 .header-left p { font-size: 14px; color: #64748b; margin: 4px 0 0; font-weight: 400; }
-.header-back { color: #2563eb; font-weight: 700; font-size: 14px; text-decoration: none; }
+.header-back { color: #1a1a1a; font-weight: 700; font-size: 14px; text-decoration: none; }
 .header-back:hover { text-decoration: underline; }
 
 /* ============ Barra de salvar/carregar ============ */
@@ -39,7 +39,7 @@ body {
   font-family: inherit;
   font-size: 14px;
 }
-.toolbar input[type="text"].toolbar-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.toolbar input[type="text"].toolbar-input:focus { outline: none; border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(15,23,42,0.15); }
 .toolbar select {
   padding: 8px 12px;
   border: 1px solid #cbd5e1;
@@ -71,21 +71,21 @@ input[type="text"], input[type="url"], textarea {
   width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
   font-family: inherit; font-size: 14px; color: #0f172a; background: #fff;
 }
-input:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+input:focus, textarea:focus { outline: none; border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(15,23,42,0.15); }
 
 .ingredient-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .ingredient-row input { flex: 1; }
 .btn-icon { padding: 8px 10px; border: 1px solid #fecaca; background: #fff; color: #dc2626; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 700; }
 .btn-icon:hover:not(:disabled) { background: #fef2f2; }
 .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-add { background: none; border: none; color: #2563eb; font-weight: 700; cursor: pointer; font-size: 13px; padding: 0; font-family: inherit; }
+.btn-add { background: none; border: none; color: #1a1a1a; font-weight: 700; cursor: pointer; font-size: 13px; padding: 0; font-family: inherit; }
 .btn-add:hover { text-decoration: underline; }
 
 /* ============ Editor rich text ============ */
 .editor-toolbar { display: flex; gap: 4px; padding: 8px; border: 1px solid #cbd5e1; border-bottom: none; border-radius: 8px 8px 0 0; background: #f8fafc; flex-wrap: wrap; }
 .tb-btn { min-width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; background: transparent; border-radius: 6px; cursor: pointer; font-family: inherit; color: #334155; font-size: 15px; padding: 0 8px; }
 .tb-btn:hover { background: #fff; border-color: #cbd5e1; color: #0f172a; }
-.tb-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.tb-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
 .tb-btn strong { font-weight: 800; }
 .tb-btn em { font-style: italic; }
 .tb-sep { width: 1px; background: #cbd5e1; margin: 4px 4px; }
@@ -96,14 +96,14 @@ input:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 
   padding: 14px; border: 1px solid #cbd5e1; border-radius: 0 0 8px 8px;
   font-family: inherit; font-size: 15px; color: #0f172a; background: #fff; line-height: 1.5;
 }
-.editor:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.editor:focus { outline: none; border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(15,23,42,0.15); }
 .editor p { margin: 0 0 12px; }
 .editor p:last-child { margin-bottom: 0; }
 .editor ul { margin: 0 0 12px; padding-left: 22px; }
 .editor li { margin-bottom: 4px; }
 .editor strong { font-weight: 700; }
 .editor em { font-style: italic; }
-.editor a { color: #0066ff; text-decoration: underline; }
+.editor a { color: #1a1a1a; text-decoration: underline; }
 .editor:empty::before { content: attr(data-placeholder); color: #94a3b8; pointer-events: none; }
 
 /* Variante específica do editor de receitas: negrito também sublinha */
@@ -118,8 +118,8 @@ input:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 
 
 /* ============ Botões ============ */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
-.btn-primary { background: #2563eb; color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
+.btn-primary { background: #1a1a1a; color: #fff; }
+.btn-primary:hover { background: #000000; }
 .btn-secondary { background: #e2e8f0; color: #334155; }
 .btn-secondary:hover { background: #cbd5e1; }
 .btn-success { background: #10b981; color: #fff; }
