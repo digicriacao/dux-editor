@@ -1,6 +1,10 @@
 /* DUX News — Responsividade mobile */
 /* https://digicriacao.github.io/dux-editor/news-responsive.css */
 
+.dux-news-col {
+  background: blue !important;
+}
+
 @media (max-width: 640px) {
   .dux-news-col {
     display: block !important;
