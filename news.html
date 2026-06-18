@@ -301,29 +301,36 @@ ${fontBlock}
     const cardsDir = colDir.map((c, i) => renderCard(c, i === colDir.length - 1)).join('\n');
 
     // ================================================================
-    // LAYOUT 2 COLUNAS — <table> com td width:50%
+    // LAYOUT RESPONSIVO — CSS externo via <link> no GitHub Pages
     //
-    // A <table> é a estrutura mais compatível com o Incentify e com
-    // clientes de e-mail. Cada <td> recebe width:50% e vertical-align:top.
-    // Em qualquer largura de tela as células ocupam exatamente metade
-    // do espaço disponível — sem overflow, sem espaço vazio, sem min-width
-    // causando problemas. O texto dentro de cada card quebra normalmente
-    // conforme o espaço disponível (word-wrap:break-word).
+    // O Incentify remove <style> e <script>, mas preserva <link rel="stylesheet">.
+    // O CSS fica hospedado em:
+    //   https://digicriacao.github.io/dux-editor/news-responsive.css
+    //
+    // Classes usadas:
+    //   .dux-news-wrap  → wrapper externo
+    //   .dux-news-grid  → flex container (row no desktop, column no mobile)
+    //   .dux-news-col   → cada coluna (flex:1 no desktop, width:100% no mobile)
+    //
+    // O CSS define:
+    //   desktop: flex-direction:row (2 colunas lado a lado)
+    //   mobile (@media max-width:640px): flex-direction:column (1 coluna)
     // ================================================================
+
+    const cssLink = `<link rel="stylesheet" href="https://digicriacao.github.io/dux-editor/news-responsive.css">`;
 
     return `<!-- News DUX -->
 ${fontBlock}
-<div style="max-width:1200px;margin:0 auto;padding:8px;background:transparent;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
-    <tr>
-      <td width="50%" valign="top" style="width:50%;vertical-align:top;padding-right:6px;word-wrap:break-word;overflow-wrap:break-word;">
+${cssLink}
+<div class="dux-news-wrap">
+  <div class="dux-news-grid">
+    <div class="dux-news-col">
 ${cardsEsq || '<!-- coluna vazia -->'}
-      </td>
-      <td width="50%" valign="top" style="width:50%;vertical-align:top;padding-left:6px;word-wrap:break-word;overflow-wrap:break-word;">
+    </div>
+    <div class="dux-news-col">
 ${cardsDir || '<!-- coluna vazia -->'}
-      </td>
-    </tr>
-  </table>
+    </div>
+  </div>
 </div>
 <!-- Fim News DUX -->`;
   }
