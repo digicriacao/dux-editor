@@ -317,9 +317,11 @@ ${fontBlock}
     //   mobile (@media max-width:640px): flex-direction:column (1 coluna)
     // ================================================================
 
-    // Layout 100% via CSS externo — sem display/width inline nas colunas
-    // para não conflitar com o CSS externo (Incentify: inline sempre vence classe,
-    // mesmo com !important). O CSS externo define flex no desktop e block no mobile.
+    // Desktop: display:flex inline no .dux-news-grid — prose do Incentify
+    // não consegue sobrescrever style inline, então as 2 colunas ficam garantidas.
+    // Mobile: CSS externo usa display:block !important no .dux-news-grid
+    // e width:100% !important no .dux-news-col para forçar 1 coluna.
+    // Nota: cada coluna também tem padding inline — o CSS externo zera no mobile.
 
     const cssLink = `<link rel="stylesheet" href="https://digicriacao.github.io/dux-editor/news-responsive.css">`;
 
@@ -327,11 +329,11 @@ ${fontBlock}
 ${fontBlock}
 ${cssLink}
 <div style="max-width:1200px;margin:0 auto;padding:8px;">
-  <div class="dux-news-grid">
-    <div class="dux-news-col">
+  <div class="dux-news-grid" style="display:flex;flex-direction:row;gap:12px;align-items:flex-start;">
+    <div class="dux-news-col" style="flex:1;min-width:0;box-sizing:border-box;">
 ${cardsEsq || '<!-- coluna vazia -->'}
     </div>
-    <div class="dux-news-col">
+    <div class="dux-news-col" style="flex:1;min-width:0;box-sizing:border-box;">
 ${cardsDir || '<!-- coluna vazia -->'}
     </div>
   </div>
