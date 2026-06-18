@@ -4,8 +4,8 @@
 html, body { margin: 0; padding: 0; }
 body {
   font-family: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
-  background: #f3f4f6;
-  color: #0f172a;
+  background: #0f172a;
+  color: #e2e8f0;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -13,10 +13,12 @@ body {
 .app { max-width: 1280px; margin: 0 auto; padding: 24px 20px 40px; }
 
 .header { margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
-.header-left h1 { font-size: 26px; font-weight: 700; margin: 0; color: #0f172a; }
-.header-left p { font-size: 14px; color: #64748b; margin: 4px 0 0; font-weight: 400; }
-.header-back { color: #1a1a1a; font-weight: 700; font-size: 14px; text-decoration: none; }
-.header-back:hover { text-decoration: underline; }
+.header-left h1 { font-size: 26px; font-weight: 700; margin: 0; color: #f8fafc; }
+.header-left p { font-size: 14px; color: #94a3b8; margin: 4px 0 0; font-weight: 400; }
+.header-back { color: #e2e8f0; font-weight: 700; font-size: 14px; text-decoration: none; }
+.header-back:hover { text-decoration: underline; color: #fff; }
+
+.footer { text-align: center; margin-top: 24px; font-size: 12px; color: #64748b; font-weight: 400; }
 
 /* ============ Barra de salvar/carregar ============ */
 .toolbar {
@@ -110,10 +112,15 @@ input:focus, textarea:focus { outline: none; border-color: #1a1a1a; box-shadow: 
 .editor.receipe-style strong { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ============ Modal ============ */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(4px); }
 .modal-backdrop.open { display: flex; }
-.modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 460px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
-.modal h3 { margin: 0 0 14px; font-size: 18px; font-weight: 700; color: #0f172a; }
+.modal { background: #1e293b; border-radius: 12px; padding: 24px; max-width: 460px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #334155; }
+.modal h3 { margin: 0 0 14px; font-size: 18px; font-weight: 700; color: #f8fafc; }
+.modal p { color: #94a3b8; }
+.modal code { background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #e2e8f0; }
+.modal .field-label { color: #cbd5e1; }
+.modal input[type="text"], .modal input[type="password"], .modal input[type="url"] { background: #0f172a; border-color: #334155; color: #f8fafc; }
+.modal input:focus { border-color: #64748b !important; box-shadow: 0 0 0 3px rgba(100,116,139,0.25) !important; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
 /* ============ Botões ============ */
@@ -174,4 +181,3 @@ input:focus, textarea:focus { outline: none; border-color: #1a1a1a; box-shadow: 
 .news-card-form .news-card-actions button.danger { color: #dc2626; border-color: #fecaca; }
 .news-card-form .news-card-actions button.danger:hover { background: #fef2f2; }
 
-.footer { text-align: center; margin-top: 24px; font-size: 12px; color: #64748b; font-weight: 400; }

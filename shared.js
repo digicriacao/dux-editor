@@ -1,14 +1,30 @@
 /* ============ DUX Ferramentas - JavaScript compartilhado ============ */
 
 // ===== GitHub Gist config =====
-const GIST_ID    = 'd35f1173dab7eb9fe5a6cf8c8cfb364e';
-const GIST_TOKEN = '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';
-const GIST_API   = `https://api.github.com/gists/${GIST_ID}`;
-// Headers mínimos para evitar preflight CORS extra
-const GIST_HEADERS = {
-  'Authorization': `Bearer ${GIST_TOKEN}`,
-  'Accept': 'application/vnd.github+json'
-};
+// O Gist ID NÃO é secreto (é só um identificador de URL). Pode ficar no código.
+const GIST_ID = 'd35f1173dab7eb9fe5a6cf8c8cfb364e';
+
+// O token é secreto — fica no localStorage do navegador, NUNCA no código público.
+// (Quando o token vai para um repositório público, o GitHub revoga automaticamente.)
+function getGistToken() {
+  return localStorage.getItem('dux_gist_token') || '';
+}
+function setGistToken(token) {
+  localStorage.setItem('dux_gist_token', token);
+}
+function clearGistToken() {
+  localStorage.removeItem('dux_gist_token');
+}
+
+const GIST_API = `https://api.github.com/gists/${GIST_ID}`;
+function gistHeaders(write) {
+  const h = {
+    'Authorization': `Bearer ${getGistToken()}`,
+    'Accept': 'application/vnd.github+json'
+  };
+  if (write) h['Content-Type'] = 'application/json';
+  return h;
+}
 
 // ===== Utils =====
 window.$ = (s, ctx) => (ctx || document).querySelector(s);
@@ -51,8 +67,15 @@ window.downloadFile = function(content, filename, mime) {
 let _gistCache = null;
 
 async function _readGist() {
-  const res = await fetch(GIST_API, { headers: GIST_HEADERS });
-  if (!res.ok) throw new Error(`Gist read error: ${res.status}`);
+  if (!getGistToken()) throw new Error('Token não configurado. Clique em "⚙ Configurar token" no topo.');
+  const res = await fetch(GIST_API, { headers: gistHeaders(false) });
+  if (!res.ok) {
+    if (res.status === 401) {
+      clearGistToken();
+      throw new Error('Token inválido ou expirado. Clique em "⚙ Configurar token" e insira um token novo.');
+    }
+    throw new Error(`Gist read error: ${res.status}`);
+  }
   const gist = await res.json();
   _gistCache = {
     receita: JSON.parse(gist.files['receitas.json']?.content || '{}'),
@@ -62,16 +85,23 @@ async function _readGist() {
 }
 
 async function _writeGist(tipo, data) {
+  if (!getGistToken()) throw new Error('Token não configurado.');
   const filename = tipo === 'receita' ? 'receitas.json' : 'news.json';
   const res = await fetch(GIST_API, {
     method: 'PATCH',
-    headers: GIST_HEADERS,
+    headers: gistHeaders(true),
     body: JSON.stringify({
       files: { [filename]: { content: JSON.stringify(data, null, 2) } }
     })
   });
-  if (!res.ok) throw new Error(`Gist write error: ${res.status} ${await res.text()}`);
-  _gistCache = null; // invalidar cache após escrita
+  if (!res.ok) {
+    if (res.status === 401) {
+      clearGistToken();
+      throw new Error('Token inválido. Reconfigure pelo botão "⚙".');
+    }
+    throw new Error(`Gist write error: ${res.status} ${await res.text()}`);
+  }
+  _gistCache = null;
 }
 
 window.DB = {
@@ -152,11 +182,95 @@ window.DB = {
   }
 };
 
+// ============ Setup do token (modal) ============
+window.TokenSetup = {
+  // Cria o modal e o botão na toolbar (chamar em cada página)
+  init() {
+    if ($('#token-modal')) return; // já existe
+    const modalHtml = `
+<div class="modal-backdrop" id="token-modal">
+  <div class="modal" style="max-width:520px;">
+    <h3>⚙ Configurar acesso</h3>
+    <p style="color:#94a3b8; font-size:13px; margin: 0 0 16px;">
+      Cole abaixo o <strong style="color:#e2e8f0;">Personal Access Token do GitHub</strong> com permissão <code>gist</code>.
+      Esse token fica salvo só no seu navegador, nunca é enviado para o repositório.
+    </p>
+    <div class="field">
+      <label class="field-label">Token (começa com <code>ghp_</code>)</label>
+      <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div style="font-size:12px; color:#94a3b8; margin-bottom: 12px;">
+      Não tem o token? Peça para o administrador da equipe.
+      Para criar: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:#60a5fa;">github.com/settings/tokens</a> → Generate new (classic) → marcar apenas <code>gist</code>.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="token-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="token-save-btn">Salvar token</button>
+    </div>
+  </div>
+</div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Adiciona botão "⚙" na toolbar se existir
+    const toolbar = document.querySelector('.toolbar');
+    if (toolbar && !$('#btn-token-config')) {
+      const btn = document.createElement('button');
+      btn.id = 'btn-token-config';
+      btn.className = 'btn btn-ghost';
+      btn.title = 'Configurar token de acesso';
+      btn.textContent = '⚙';
+      btn.style.fontSize = '16px';
+      btn.style.minWidth = '36px';
+      btn.addEventListener('click', () => this.open());
+      toolbar.appendChild(btn);
+    }
+
+    // Eventos do modal
+    $('#token-cancel').addEventListener('click', () => this.close());
+    $('#token-modal').addEventListener('click', (e) => { if (e.target === $('#token-modal')) this.close(); });
+    $('#token-save-btn').addEventListener('click', () => this.save());
+    $('#token-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); this.save(); }
+      if (e.key === 'Escape') this.close();
+    });
+
+    // Se não tem token, abre o modal automaticamente
+    if (!getGistToken()) {
+      setTimeout(() => this.open(), 400);
+    }
+  },
+
+  open() {
+    $('#token-input').value = getGistToken();
+    $('#token-modal').classList.add('open');
+    setTimeout(() => $('#token-input').focus(), 50);
+  },
+
+  close() { $('#token-modal').classList.remove('open'); },
+
+  save() {
+    const v = $('#token-input').value.trim();
+    if (!v) { $('#token-input').focus(); return; }
+    if (!/^gh[ps]_[A-Za-z0-9]{30,}$/.test(v)) {
+      if (!confirm('O token não parece ter o formato padrão (ghp_...). Salvar mesmo assim?')) return;
+    }
+    setGistToken(v);
+    _gistCache = null;
+    this.close();
+    showToast('Token salvo! Recarregando...');
+    setTimeout(() => location.reload(), 800);
+  }
+};
+
+
 // ============ Toolbar de salvar/carregar ============
 // opts = { tipo, getDataFn, loadDataFn, newDataFn, fileNamePrefix }
 window.initSaveToolbar = function(opts) {
   const { tipo, getDataFn, loadDataFn, newDataFn, fileNamePrefix } = opts;
   let currentId = null; // id do item carregado no momento
+
+  // Inicializa o modal de configuração de token
+  TokenSetup.init();
 
   // Mostra/esconde loading na toolbar
   function setLoading(on) {

@@ -280,13 +280,31 @@ ${fontBlock}
 </div>`;
     }
 
-    // ====== ESTRATÉGIA MASONRY ======
-    // Distribuição alternada: 1º→esq, 2º→dir, 3º→esq, 4º→dir...
-    // Resultado: 2 colunas independentes, cada uma empilha seus cards sem espaço vazio.
+    // ====== ESTRATÉGIA MASONRY BALANCEADA ======
+    // Em vez de alternar 1→esq, 2→dir, mede o "peso" de cada card (tamanho do conteúdo)
+    // e coloca o próximo card sempre na coluna que estiver mais "vazia". Isso equilibra
+    // o tamanho final das colunas mesmo quando há cards muito grandes e muito pequenos.
+
+    function cardWeight(card) {
+      // Estima a altura visual: cada caractere conta como 1, título conta dobrado, listas e
+      // parágrafos adicionam quebras de linha. Não é exato, mas é uma boa aproximação.
+      const titleLen = (card.title || '').length * 2;
+      const textOnly = (card.contentHtml || '').replace(/<[^>]+>/g, '').trim();
+      const breaks   = ((card.contentHtml || '').match(/<(p|li|h\d|br)/g) || []).length * 40;
+      return titleLen + textOnly.length + breaks + 120; // +120 = padding + título base
+    }
+
     const colEsq = [];
     const colDir = [];
-    validCards.forEach((card, idx) => {
-      (idx % 2 === 0 ? colEsq : colDir).push(card);
+    let pesoEsq = 0;
+    let pesoDir = 0;
+    validCards.forEach((card) => {
+      const w = cardWeight(card);
+      if (pesoEsq <= pesoDir) {
+        colEsq.push(card); pesoEsq += w;
+      } else {
+        colDir.push(card); pesoDir += w;
+      }
     });
 
     // Estilos dos cards
