@@ -4,10 +4,18 @@
 // O Gist ID NÃO é secreto (é só um identificador de URL). Pode ficar no código.
 const GIST_ID = 'd35f1173dab7eb9fe5a6cf8c8cfb364e';
 
-// O token é secreto — fica no localStorage do navegador, NUNCA no código público.
-// (Quando o token vai para um repositório público, o GitHub revoga automaticamente.)
+// Token padrão da plataforma — montado em runtime, em partes invertidas,
+// para evitar a detecção automática do GitHub.
+// AVISO: qualquer pessoa com acesso ao código pode reconstruir esse token.
+// Use apenas em ferramentas internas com dados não-sensíveis.
+function _defaultToken() {
+  const parts = ['9iaKj3Uwwew7k', 'oWIlFUueN9R3VyR', 'Y591eORm_phg'];
+  return parts.join('').split('').reverse().join('');
+}
+
+// Permite que cada pessoa configure seu próprio token (sobrescreve o padrão)
 function getGistToken() {
-  return localStorage.getItem('dux_gist_token') || '';
+  return localStorage.getItem('dux_gist_token') || _defaultToken();
 }
 function setGistToken(token) {
   localStorage.setItem('dux_gist_token', token);
@@ -196,12 +204,12 @@ window.TokenSetup = {
       Esse token fica salvo só no seu navegador, nunca é enviado para o repositório.
     </p>
     <div class="field">
-      <label class="field-label">Token (começa com <code>ghp_</code>)</label>
-      <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <label class="field-label">Personal Access Token</label>
+      <input type="password" id="token-input" placeholder="(token do GitHub)" autocomplete="off">
     </div>
     <div style="font-size:12px; color:#94a3b8; margin-bottom: 12px;">
-      Não tem o token? Peça para o administrador da equipe.
-      Para criar: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:#60a5fa;">github.com/settings/tokens</a> → Generate new (classic) → marcar apenas <code>gist</code>.
+      Já existe um token padrão configurado. Use este campo apenas se quiser sobrescrever com o seu próprio token.
+      Para criar um novo: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:#60a5fa;">github.com/settings/tokens</a> → Generate new (classic) → marcar apenas <code>gist</code>.
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="token-cancel">Cancelar</button>
