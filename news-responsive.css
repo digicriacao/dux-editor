@@ -1,18 +1,24 @@
-/* DUX News — Responsividade mobile */
-/* https://digicriacao.github.io/dux-editor/news-responsive.css */
-
-.dux-news-col {
-  background: blue !important;
+.dux-news-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
 }
+.dux-news-col {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.dux-news-col:first-child { padding-right: 6px; }
+.dux-news-col:last-child  { padding-left: 6px;  }
 
 @media (max-width: 640px) {
-  .dux-news-col {
-    display: block !important;
-    width: 100% !important;
-    padding: 0 !important;
-    margin-bottom: 12px !important;
-  }
   .dux-news-grid {
-    display: block !important;
+    display: block;
+  }
+  .dux-news-col {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 12px;
   }
 }
