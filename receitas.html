@@ -76,9 +76,9 @@
             <div class="tb-sep"></div>
             <button type="button" class="tb-btn" id="btn-link" title="Inserir/editar link (Ctrl+K)">🔗</button>
             <button type="button" class="tb-btn" id="btn-unlink" title="Remover link">⛌</button>
-            <div class="tb-hint">Negrito também sublinha (estilo DUX)</div>
+            <div class="tb-hint">Use B para negrito • Ctrl+K para link</div>
           </div>
-          <div class="editor receipe-style" id="editor" contenteditable="true" data-placeholder="Escreva o modo de preparo aqui..."></div>
+          <div class="editor" id="editor" contenteditable="true" data-placeholder="Escreva o modo de preparo aqui..."></div>
         </div>
 
       </div>
@@ -226,7 +226,7 @@
       </div>`;
     }).join('\n');
 
-    const prepHtml = serializeEditorToInline(editor, fontStack, { boldUnderline: true });
+    const prepHtml = serializeEditorToInline(editor, fontStack, { boldUnderline: false });
 
     const cardStyle = `background-color:#ffffff;border-radius:18px;padding:24px;margin:0 auto 16px auto;max-width:720px;font-family:${fontStack};color:#1a1a1a;`;
     const badgeStyle = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:20px;padding:7px 20px;border-radius:999px;margin-bottom:16px;`;
@@ -238,9 +238,9 @@
     const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:10px;color:#888888;letter-spacing:1.2px;display:block;text-transform:uppercase;margin-bottom:2px;`;
     const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:14px;color:#0a0a0a;line-height:1.2;display:block;`;
 
-    const iconChef = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>`;
-    const iconTimer = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M9 2h6"/></svg>`;
-    const iconUtensils = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`;
+    const iconChef = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAk0lEQVR42u2XwQ3AIAgAhXTBTtoR6QDtQ6xQNHdvIxfEAK0BrI1EXGpm9ggkIuWE30Rni2umrOdcqLBX4ou0ZAjOLBH5S3RUXCvIeu7XCrKeONoWQ6tktzfefhlGGOGgKWtWA9mzJLKy3BOHT4cwwggjjLCLY6AbnQFD+0VJVEEczxa+2zH8LCUcPRNnbzYAAEW4AZE6QDDpdJzzAAAAAElFTkSuQmCC" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
+    const iconTimer = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAA4klEQVR42u2YURKAIAhEg/H+V7YDlA3Ismbhd8EL15U4jlq5S9ABe+/9kkQElkd/W+G7ymZUersKF3ABF7DRAVBeHA5isTMkvDBBEeCChH0CmHknDIzqEyJxlA07es8qscbS3iiG9yyIt7oW2MznleEGSPdRthSicRW5tSjopypX87MMmCkHjyy2q3DLToDqIerQMfw6VRJZ0N+RhPXmyTqgox2qQ7cUmCkL682qs0GZPbALmNVHwP44sqXhbbJaJEmk+rMfrpGtmk0aGRl8e/KDdgzabC0KvmR66YVn2+Nr1gmzW5hgHInWSwAAAABJRU5ErkJggg==" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
+    const iconUtensils = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAaElEQVR42u3WMQqAMAxA0US8/5Xj5qC0tuhSeX8TWniUEIyQpF45c7iq6ryYmU/frbs3xOVsr221Fwb+Dbg1pzPz64WBgYGBx/4zRnfx7A6OiNi/WP5vEUYCGBgYGBgYGBgYGBhY0godOnYUWA3H3MEAAAAASUVORK5CYII=" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
 
     const headerCell = (icon, label, value, padStart, padEnd, border) => `
         <td style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
@@ -328,7 +328,7 @@ ${prepHtml}
   }
 
   function loadData(data) {
-    $('#f-difficulty').value = data.difficulty || 'FÁCIL';
+    $('#f-difficulty').value = data.difficulty || '';
     $('#f-prep').value = data.prep || '';
     $('#f-yield').value = data.yield || '';
     ingredients = Array.isArray(data.ingredients) ? [...data.ingredients] : [''];
@@ -340,11 +340,11 @@ ${prepHtml}
 
   function newData() {
     loadData({
-      difficulty: 'FÁCIL',
+      difficulty: '',
       prep: '',
       yield: '',
       ingredients: [''],
-      preparation: '<p>Escreva o modo de preparo aqui...</p>'
+      preparation: ''
     });
   }
 
@@ -356,19 +356,8 @@ ${prepHtml}
     fileNamePrefix: 'receitas-dux'
   });
 
-  // ====== INICIALIZAR (com receita-exemplo) ======
-  loadData({
-    difficulty: 'FÁCIL',
-    prep: '2H05 A 4H05',
-    yield: '1 PORÇÃO',
-    ingredients: [
-      '3 colheres (sopa) de chia',
-      '1 xícara (chá) de leite ou bebida vegetal',
-      '1 porção ou sachê de Collagen Advanced DUX sabor Darkberries',
-      'Frutas para decorar'
-    ],
-    preparation: '<p>Misture a chia com a bebida escolhida e o <strong>Collagen Advanced</strong> até ficar homogêneo. Leve à geladeira por cerca de 4 horas, ou até adquirir consistência de pudim.</p><p><strong>Finalize decorando com as frutas de sua preferência.</strong></p>'
-  });
+  // ====== INICIALIZAR (estado vazio) ======
+  newData();
 
 })();
 </script>

@@ -1,13 +1,13 @@
 /* ============ DUX Ferramentas - JavaScript compartilhado ============ */
 
-// ===== Supabase config =====
-const SUPABASE_URL = 'https://waihlslucgqmjfqwwbbu.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhaWhsc2x1Y2dxbWpmcXd3YmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTg2NDksImV4cCI6MjA5NTYzNDY0OX0.W5NdhtO7U1XP2teiyekgPyOYS77O7yRdLNJGi6p20Lg';
-const API = `${SUPABASE_URL}/rest/v1/dux_itens`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`
+// ===== GitHub Gist config =====
+const GIST_ID    = 'd35f1173dab7eb9fe5a6cf8c8cfb364e';
+const GIST_TOKEN = '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';
+const GIST_API   = `https://api.github.com/gists/${GIST_ID}`;
+// Headers mínimos para evitar preflight CORS extra
+const GIST_HEADERS = {
+  'Authorization': `Bearer ${GIST_TOKEN}`,
+  'Accept': 'application/vnd.github+json'
 };
 
 // ===== Utils =====
@@ -42,81 +42,108 @@ window.downloadFile = function(content, filename, mime) {
   a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 };
 
-// ============ Supabase Storage ============
+// ============ GitHub Gist Storage ============
+// Estrutura do Gist:
+//   receitas.json → { "Nome da receita": { ...dados }, ... }
+//   news.json     → { "Nome da news":    { ...dados }, ... }
+
+// Cache em memória para evitar fetches repetidos
+let _gistCache = null;
+
+async function _readGist() {
+  const res = await fetch(GIST_API, { headers: GIST_HEADERS });
+  if (!res.ok) throw new Error(`Gist read error: ${res.status}`);
+  const gist = await res.json();
+  _gistCache = {
+    receita: JSON.parse(gist.files['receitas.json']?.content || '{}'),
+    news:    JSON.parse(gist.files['news.json']?.content    || '{}'),
+  };
+  return _gistCache;
+}
+
+async function _writeGist(tipo, data) {
+  const filename = tipo === 'receita' ? 'receitas.json' : 'news.json';
+  const res = await fetch(GIST_API, {
+    method: 'PATCH',
+    headers: GIST_HEADERS,
+    body: JSON.stringify({
+      files: { [filename]: { content: JSON.stringify(data, null, 2) } }
+    })
+  });
+  if (!res.ok) throw new Error(`Gist write error: ${res.status} ${await res.text()}`);
+  _gistCache = null; // invalidar cache após escrita
+}
+
 window.DB = {
-  // Busca todos os itens de um tipo ('receita' ou 'news'), ordenados por nome
+  // Lista todos os itens de um tipo, ordenados por nome
   async list(tipo) {
-    const res = await fetch(`${API}?tipo=eq.${tipo}&select=id,nome,atualizado&order=nome.asc`, { headers: HEADERS });
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json(); // [{id, nome, atualizado}, ...]
+    const all = await _readGist();
+    const bucket = all[tipo] || {};
+    return Object.keys(bucket)
+      .sort((a, b) => a.localeCompare(b, 'pt'))
+      .map(nome => ({ id: nome, nome })); // id === nome no Gist
   },
 
-  // Busca os dados completos de um item pelo id
+  // Busca os dados completos de um item pelo nome (id = nome)
   async get(id) {
-    const res = await fetch(`${API}?id=eq.${id}&select=*`, { headers: HEADERS });
-    if (!res.ok) throw new Error(await res.text());
-    const rows = await res.json();
-    return rows[0] || null;
-  },
-
-  // Salva (upsert): se já existe um item com esse tipo+nome, atualiza. Senão, cria.
-  async save(tipo, nome, dados) {
-    // Verificar se já existe
-    const res = await fetch(`${API}?tipo=eq.${tipo}&nome=eq.${encodeURIComponent(nome)}&select=id`, { headers: HEADERS });
-    const existing = await res.json();
-
-    if (existing.length > 0) {
-      // Atualizar
-      const upd = await fetch(`${API}?id=eq.${existing[0].id}`, {
-        method: 'PATCH',
-        headers: { ...HEADERS, 'Prefer': 'return=representation' },
-        body: JSON.stringify({ dados, atualizado: new Date().toISOString() })
-      });
-      if (!upd.ok) throw new Error(await upd.text());
-      return existing[0].id;
-    } else {
-      // Criar
-      const ins = await fetch(API, {
-        method: 'POST',
-        headers: { ...HEADERS, 'Prefer': 'return=representation' },
-        body: JSON.stringify({ tipo, nome, dados, atualizado: new Date().toISOString() })
-      });
-      if (!ins.ok) throw new Error(await ins.text());
-      const rows = await ins.json();
-      return rows[0].id;
+    const all = await _readGist();
+    // id é o nome no modelo Gist
+    for (const tipo of ['receita', 'news']) {
+      if (all[tipo]?.[id] !== undefined) {
+        return { id, nome: id, dados: all[tipo][id] };
+      }
     }
+    return null;
   },
 
-  // Remove um item pelo id
+  // Salva (upsert) — cria ou sobrescreve pelo nome
+  async save(tipo, nome, dados) {
+    const all = await _readGist();
+    const bucket = all[tipo] || {};
+    bucket[nome] = dados;
+    await _writeGist(tipo, bucket);
+    return nome; // id = nome
+  },
+
+  // Remove um item pelo nome
   async remove(id) {
-    const res = await fetch(`${API}?id=eq.${id}`, { method: 'DELETE', headers: HEADERS });
-    if (!res.ok) throw new Error(await res.text());
+    // Precisamos saber o tipo — tentamos nos dois buckets
+    const all = await _readGist();
+    let changed = false;
+    for (const tipo of ['receita', 'news']) {
+      if (all[tipo]?.[id] !== undefined) {
+        delete all[tipo][id];
+        await _writeGist(tipo, all[tipo]);
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) throw new Error(`Item "${id}" não encontrado`);
   },
 
-  // Exporta todos os itens de um tipo como JSON
+  // Exporta todos os itens de um tipo como arquivo JSON
   async exportAll(tipo, filename) {
-    const res = await fetch(`${API}?tipo=eq.${tipo}&select=*&order=nome.asc`, { headers: HEADERS });
-    if (!res.ok) throw new Error(await res.text());
-    const rows = await res.json();
-    const obj = {};
-    rows.forEach(r => { obj[r.nome] = r.dados; });
-    downloadFile(JSON.stringify(obj, null, 2), filename, 'application/json');
-    return rows.length;
+    const all = await _readGist();
+    const bucket = all[tipo] || {};
+    downloadFile(JSON.stringify(bucket, null, 2), filename, 'application/json');
+    return Object.keys(bucket).length;
   },
 
-  // Importa itens de um arquivo JSON (objeto {nome: dados})
+  // Importa itens de um arquivo JSON { nome: dados }
   async importFromFile(tipo, file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
           const imported = JSON.parse(e.target.result);
-          if (typeof imported !== 'object' || Array.isArray(imported)) return reject(new Error('Arquivo inválido'));
-          const names = Object.keys(imported);
-          for (const nome of names) {
-            await DB.save(tipo, nome, imported[nome]);
+          if (typeof imported !== 'object' || Array.isArray(imported)) {
+            return reject(new Error('Arquivo inválido'));
           }
-          resolve(names.length);
+          const all = await _readGist();
+          const bucket = all[tipo] || {};
+          Object.assign(bucket, imported);
+          await _writeGist(tipo, bucket);
+          resolve(Object.keys(imported).length);
         } catch (err) { reject(err); }
       };
       reader.onerror = () => reject(reader.error);
@@ -139,7 +166,7 @@ window.initSaveToolbar = function(opts) {
     btns.forEach(b => b.disabled = on);
   }
 
-  // Atualiza o dropdown com a lista do Supabase
+  // Atualiza o dropdown com a lista do Gist
   async function refreshSelect() {
     const sel = $('#load-select');
     if (!sel) return;
@@ -150,8 +177,8 @@ window.initSaveToolbar = function(opts) {
         items.map(i => `<option value="${escapeAttr(i.id)}" data-nome="${escapeAttr(i.nome)}">${escapeHtml(i.nome)}</option>`).join('');
     } catch (err) {
       sel.innerHTML = '<option value="">— Erro ao carregar —</option>';
-      showToast('Erro ao conectar com o banco', 3000);
-      console.error(err);
+      showToast('Erro ao conectar: ' + (err?.message || err), 4000);
+      console.error('[DUX] Erro ao listar do Gist:', err);
     }
   }
 
@@ -203,8 +230,8 @@ window.initSaveToolbar = function(opts) {
       if ($('#load-select')) $('#load-select').value = id;
       showToast(`Salvo: ${nome}`);
     } catch (err) {
-      showToast('Erro ao salvar', 3000);
-      console.error(err);
+      showToast('Erro ao salvar: ' + (err?.message || err), 4000);
+      console.error('[DUX] Erro ao salvar no Gist:', err);
     } finally {
       setLoading(false);
     }

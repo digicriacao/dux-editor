@@ -388,9 +388,7 @@ ${cardsDir || '<!-- coluna vazia -->'}
   }
 
   function newData() {
-    loadData({ cards: [
-      { title: 'Título do primeiro quadro', contentHtml: '<p>Escreva o conteúdo aqui. Você pode usar <strong>negrito</strong>, <em>itálico</em>, listas e links.</p>' }
-    ]});
+    loadData({ cards: [] });
   }
 
   initSaveToolbar({
@@ -401,27 +399,8 @@ ${cardsDir || '<!-- coluna vazia -->'}
     fileNamePrefix: 'news-dux'
   });
 
-  // ====== INICIALIZAR (com exemplo de 4 cards) ======
-  loadData({
-    cards: [
-      {
-        title: 'Por que o IMC já não basta?',
-        contentHtml: '<p>O Índice de Massa Corporal sempre foi um método simples para avaliar o peso corporal, mas suas limitações têm se tornado cada vez mais evidentes. Entre os principais pontos:</p><ul><li>Não diferencia massa muscular de gordura corporal.</li><li>Não avalia a distribuição da gordura.</li></ul><p>Essas falhas têm levado a diagnósticos imprecisos, prejudicando intervenções clínicas e o sucesso do tratamento.</p>'
-      },
-      {
-        title: 'O que muda para nutricionistas?',
-        contentHtml: '<p>Com as novas diretrizes, o nutricionista ganha ferramentas mais robustas para compreender a real condição corporal do paciente. Incorporar esses métodos ao protocolo de atendimento contribui para:</p><ul><li>avaliações mais completas</li><li>terapias mais eficientes</li><li>decisões clínicas baseadas em evidências</li><li>prevenção mais eficaz das doenças relacionadas à obesidade</li></ul><p>A atualização é um passo essencial para profissionais que desejam oferecer mais precisão, ciência e qualidade no cuidado nutricional.</p>'
-      },
-      {
-        title: 'Novas métricas para um diagnóstico mais preciso',
-        contentHtml: '<p>A partir de 2025, novas ferramentas serão incorporadas ao diagnóstico da obesidade, oferecendo uma avaliação mais completa da composição corporal. Entre as principais:</p><p><strong>Circunferência Abdominal</strong><br>Avalia gordura visceral, um dos fatores de risco mais relevantes para doenças cardiometabólicas.</p><p><strong>Razão Cintura-Quadril (RCQ)</strong><br>Ajuda a identificar padrões de distribuição de gordura, como o andróide, associado a maior risco à saúde.</p><p><strong>DEXA (Absorciometria por Dupla Emissão de Raios-X)</strong><br>Exame avançado que distingue massa muscular, gordura e densidade óssea, permitindo uma análise corporal detalhada.</p>'
-      },
-      {
-        title: 'Benefícios para a prática clínica',
-        contentHtml: '<p>A modernização dos critérios traz avanços importantes:</p><ul><li><strong>Diagnósticos mais precisos.</strong> Reduz erros, evitando tanto o subdiagnóstico quanto o superdiagnóstico.</li><li><strong>Tratamentos mais personalizados.</strong> Permite prescrever estratégias alinhadas ao perfil fisiológico de cada paciente.</li><li><strong>Maior atenção preventiva.</strong> Identifica riscos metabólicos mesmo em pacientes com IMC normal.</li></ul><p>Esses fatores fortalecem a qualidade do acompanhamento nutricional e ampliam os resultados clínicos.</p>'
-      }
-    ]
-  });
+  // ====== INICIALIZAR (estado vazio) ======
+  newData();
 
 })();
 </script>
