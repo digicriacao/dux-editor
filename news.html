@@ -362,6 +362,14 @@ ${cardsDir || '<!-- coluna vazia -->'}
   function updateOutput() {
     currentHtml = generateHtml();
     const iframe = $('#preview-frame');
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.body) return;
+        const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 4;
+        iframe.style.height = h + 'px';
+      } catch (e) {}
+    };
     iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#e5e5e5;margin:0;padding:20px;}</style></head><body>${currentHtml}</body></html>`;
     $('#code-pane').textContent = currentHtml;
   }

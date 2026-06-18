@@ -55,7 +55,7 @@ body {
 .toolbar-divider { width: 1px; height: 24px; background: #cbd5e1; }
 
 /* ============ Grid principal ============ */
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 
 .panel { background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
@@ -146,8 +146,8 @@ input:focus, textarea:focus { outline: none; border-color: #1a1a1a; box-shadow: 
 .info-box code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
 
 /* ============ Preview / Código ============ */
-.preview-container { background: #e5e5e5; height: 600px; overflow: auto; }
-.preview-container iframe { width: 100%; height: 100%; border: none; background: #e5e5e5; }
+.preview-container { background: #e5e5e5; min-height: 200px; border-radius: 8px; overflow: hidden; }
+.preview-container iframe { width: 100%; min-height: 200px; border: none; background: #e5e5e5; display: block; }
 .code-container { background: #0f172a; color: #e2e8f0; padding: 16px; max-height: 600px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
 
 /* ============ Toast ============ */
