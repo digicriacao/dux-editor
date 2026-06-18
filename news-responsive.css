@@ -1,0 +1,29 @@
+/* DUX News — Layout responsivo */
+/* Hospedado em: https://digicriacao.github.io/dux-editor/news-responsive.css */
+
+.dux-news-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px;
+}
+
+.dux-news-grid {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.dux-news-col {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .dux-news-grid {
+    flex-direction: column;
+    gap: 0;
+  }
+  .dux-news-col {
+    width: 100%;
+  }
+}
