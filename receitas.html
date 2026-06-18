@@ -246,20 +246,26 @@
 
     // Cada item do cabeçalho: inline-block para empilhar automaticamente
     // min-width:100px garante que em telas muito estreitas o texto não fique ilegível
-    const headerItemStyle = (borderRight) =>
-      `display:inline-block;width:calc(33.33% - 4px);min-width:100px;vertical-align:top;text-align:center;padding:12px 4px;font-family:${fontStack};font-size:0;box-sizing:border-box;${borderRight ? 'border-right:1px solid #d8d8d8;' : ''}`;
-
-    const headerBlock = (icon, label, value, borderRight) =>
-      `<div style="${headerItemStyle(borderRight)}">${icon}<span style="${iconLabelStyle}">${label}</span><span style="${iconValueStyle}">${value}</span></div>`;
+    // Cabeçalho: <table> com 3 colunas — compatível com Incentify, sem font-size:0
+    // Cada <td> tem width:33% e border-right nas primeiras 2 colunas.
+    // A <table> usa table-layout:fixed e width:100% para distribuir igualmente.
+    const headerBlock = (icon, label, value, borderRight) => {
+      const tdStyle = `width:33%;text-align:center;padding:12px 8px;vertical-align:top;font-family:${fontStack};${borderRight ? 'border-right:1px solid #d8d8d8;' : ''}`;
+      return `<td style="${tdStyle}">${icon}<span style="${iconLabelStyle}">${label}</span><span style="${iconValueStyle}">${value}</span></td>`;
+    };
 
     return `<!-- Receita DUX -->
 ${fontBlock}
 <div style="${wrapperStyle}">
 
   <div style="${cardStyle}padding:20px 16px;">
-    <div style="text-align:center;font-size:0;line-height:0;">
-      ${headerBlock(iconChef, 'DIFICULDADE', difficulty || '—', true)}${headerBlock(iconTimer, 'PREPARO', prep || '—', true)}${headerBlock(iconUtensils, 'RENDIMENTO', yld || '—', false)}
-    </div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+      <tr>
+        ${headerBlock(iconChef, 'DIFICULDADE', difficulty || '—', true)}
+        ${headerBlock(iconTimer, 'PREPARO', prep || '—', true)}
+        ${headerBlock(iconUtensils, 'RENDIMENTO', yld || '—', false)}
+      </tr>
+    </table>
   </div>
 
   <div style="${cardStyle}">

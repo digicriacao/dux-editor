@@ -301,31 +301,29 @@ ${fontBlock}
     const cardsDir = colDir.map((c, i) => renderCard(c, i === colDir.length - 1)).join('\n');
 
     // ================================================================
-    // LAYOUT RESPONSIVO SEM MEDIA QUERY — técnica "fluid columns"
+    // LAYOUT 2 COLUNAS — <table> com td width:50%
     //
-    // Cada coluna é um <div> com display:inline-block + width:calc(50% - 7px)
-    // + min-width:280px. Quando a largura disponível não comporta 2 × 280px,
-    // o segundo bloco cai automaticamente para a linha seguinte — sem JS,
-    // sem media query, sem CSS externo.
-    //
-    // O wrapper usa font-size:0 para eliminar o espaço em branco entre
-    // inline-blocks, e cada coluna redefine font-size:initial.
-    //
-    // Compatibilidade: funciona em todos os clientes que respeitam
-    // display:inline-block (todos os browsers modernos e clientes de e-mail
-    // que suportam CSS básico). O Incentify usa um WebView moderno, então
-    // funciona sem problema.
+    // A <table> é a estrutura mais compatível com o Incentify e com
+    // clientes de e-mail. Cada <td> recebe width:50% e vertical-align:top.
+    // Em qualquer largura de tela as células ocupam exatamente metade
+    // do espaço disponível — sem overflow, sem espaço vazio, sem min-width
+    // causando problemas. O texto dentro de cada card quebra normalmente
+    // conforme o espaço disponível (word-wrap:break-word).
     // ================================================================
 
     return `<!-- News DUX -->
 ${fontBlock}
-<div style="max-width:1200px;margin:0 auto;padding:8px;background:transparent;font-size:0;line-height:0;">
-  <div style="display:inline-block;width:calc(50% - 7px);min-width:280px;vertical-align:top;padding-right:6px;font-size:initial;line-height:normal;box-sizing:border-box;">
+<div style="max-width:1200px;margin:0 auto;padding:8px;background:transparent;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+    <tr>
+      <td width="50%" valign="top" style="width:50%;vertical-align:top;padding-right:6px;word-wrap:break-word;overflow-wrap:break-word;">
 ${cardsEsq || '<!-- coluna vazia -->'}
-  </div><!--
-  --><div style="display:inline-block;width:calc(50% - 7px);min-width:280px;vertical-align:top;padding-left:6px;font-size:initial;line-height:normal;box-sizing:border-box;">
+      </td>
+      <td width="50%" valign="top" style="width:50%;vertical-align:top;padding-left:6px;word-wrap:break-word;overflow-wrap:break-word;">
 ${cardsDir || '<!-- coluna vazia -->'}
-  </div>
+      </td>
+    </tr>
+  </table>
 </div>
 <!-- Fim News DUX -->`;
   }
