@@ -317,23 +317,27 @@ ${fontBlock}
     //   mobile (@media max-width:640px): flex-direction:column (1 coluna)
     // ================================================================
 
-    // Desktop: display:flex inline no .dux-news-grid — prose do Incentify
-    // não consegue sobrescrever style inline, então as 2 colunas ficam garantidas.
-    // Mobile: CSS externo usa display:block !important no .dux-news-grid
-    // e width:100% !important no .dux-news-col para forçar 1 coluna.
-    // Nota: cada coluna também tem padding inline — o CSS externo zera no mobile.
-
-    const cssLink = `<link rel="stylesheet" href="https://digicriacao.github.io/dux-editor/news-responsive.css">`;
+    // ================================================================
+    // LAYOUT RESPONSIVO — flex-wrap + flex-basis
+    //
+    // Descoberta: o Incentify preserva flex:1 1 Xpx (flex-basis).
+    // Com flex-basis:400px em cada coluna:
+    //   - Desktop (> 800px): as 2 colunas cabem lado a lado
+    //   - Mobile  (< 800px): cada coluna ocupa 100% e empilha
+    //
+    // Sem CSS externo, sem <style>, sem <script>. 100% inline.
+    // Propriedades removidas pelo Incentify (não usar): gap, min-width,
+    // box-sizing, container-type.
+    // ================================================================
 
     return `<!-- News DUX -->
 ${fontBlock}
-${cssLink}
 <div style="max-width:1200px;margin:0 auto;padding:8px;">
-  <div class="dux-news-grid" style="display:flex;flex-direction:row;gap:12px;align-items:flex-start;">
-    <div class="dux-news-col" style="flex:1;min-width:0;box-sizing:border-box;">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-start;">
+    <div style="flex:1 1 400px;padding-right:6px;">
 ${cardsEsq || '<!-- coluna vazia -->'}
     </div>
-    <div class="dux-news-col" style="flex:1;min-width:0;box-sizing:border-box;">
+    <div style="flex:1 1 400px;padding-left:6px;">
 ${cardsDir || '<!-- coluna vazia -->'}
     </div>
   </div>
