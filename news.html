@@ -48,6 +48,10 @@
 
         <div id="cards-list"></div>
 
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary" id="btn-add-card-bottom">+ Novo quadro</button>
+        </div>
+
       </div>
     </div>
 
@@ -240,8 +244,8 @@
     updateOutput();
   }
 
-  $('#btn-add-card').addEventListener('click', () => {
-    cards.push(newCard('', '<p>Conteúdo do quadro...</p>'));
+  function addCard() {
+    cards.push(newCard('', ''));
     renderCardsList();
     updateOutput();
     setTimeout(() => {
@@ -249,7 +253,10 @@
       last?.scrollIntoView({ behavior: 'smooth', block: 'end' });
       last?.querySelector('.card-title')?.focus();
     }, 50);
-  });
+  }
+
+  $('#btn-add-card').addEventListener('click', addCard);
+  $('#btn-add-card-bottom').addEventListener('click', addCard);
 
   LinkModal.initModal();
 

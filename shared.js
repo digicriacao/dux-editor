@@ -492,7 +492,9 @@ window.serializeEditorToInline = function(editor, fontStack, options) {
   const pStyle    = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;color:#1a1a1a;`;
   const ulStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;padding:0;list-style:none;color:#1a1a1a;`;
   // li: font-size e font-family explícitos para não depender de herança
-  const liStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;color:#1a1a1a;position:relative;padding-left:20px;margin-bottom:8px;`;
+  // Bolinha como elemento inline antes do texto — sem position:absolute
+  // para não depender de position:relative (que o Incentify pode remover).
+  const liStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;color:#1a1a1a;margin-bottom:8px;list-style:none;display:flex;align-items:flex-start;`;
   const strongStyle = options.boldUnderline
     ? `font-family:${fontStack};font-size:${fontSize};font-weight:700;text-decoration:underline;text-underline-offset:3px;`
     : `font-family:${fontStack};font-size:${fontSize};font-weight:700;`;
@@ -501,7 +503,8 @@ window.serializeEditorToInline = function(editor, fontStack, options) {
 
   html = html.replace(/<p>/g,      `<p style="${pStyle}">`);
   html = html.replace(/<ul>/g,     `<ul style="${ulStyle}">`);
-  html = html.replace(/<li>/g,     `<li style="${liStyle}"><span style="position:absolute;left:4px;top:10px;width:7px;height:7px;background-color:#1a1a1a;border-radius:50%;display:inline-block;"></span>`);
+  html = html.replace(/<li>/g,     `<li style="${liStyle}"><span style="flex-shrink:0;width:7px;height:7px;background-color:#1a1a1a;border-radius:50%;margin-top:8px;margin-right:12px;display:inline-block;"></span><span style="flex:1;">`);
+  html = html.replace(/<\/li>/g,  `</span></li>`);
   html = html.replace(/<strong>/g, `<strong style="${strongStyle}">`);
   html = html.replace(/<em>/g,     `<em style="${emStyle}">`);
   html = html.replace(/<a\s+href="([^"]*)"[^>]*>/g, (m, href) =>
