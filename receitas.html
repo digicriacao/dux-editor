@@ -234,17 +234,16 @@
 
     // Cabeçalho — ícone em cima centralizado, texto embaixo. Tamanhos médios que funcionam em qualquer largura.
     const headerCellStyle = (border) => `width:33.33%;padding:0 8px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:top;text-align:center;font-family:${fontStack};`;
-    const iconCircleStyle = `display:inline-block;width:38px;height:38px;background-color:#1a1a1a;border-radius:50%;text-align:center;line-height:38px;margin-bottom:8px;`;
     const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:10px;color:#888888;letter-spacing:1.2px;display:block;text-transform:uppercase;margin-bottom:2px;`;
     const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:14px;color:#0a0a0a;line-height:1.2;display:block;`;
 
-    const iconChef = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAk0lEQVR42u2XwQ3AIAgAhXTBTtoR6QDtQ6xQNHdvIxfEAK0BrI1EXGpm9ggkIuWE30Rni2umrOdcqLBX4ou0ZAjOLBH5S3RUXCvIeu7XCrKeONoWQ6tktzfefhlGGOGgKWtWA9mzJLKy3BOHT4cwwggjjLCLY6AbnQFD+0VJVEEczxa+2zH8LCUcPRNnbzYAAEW4AZE6QDDpdJzzAAAAAElFTkSuQmCC" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
-    const iconTimer = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAA4klEQVR42u2YURKAIAhEg/H+V7YDlA3Ismbhd8EL15U4jlq5S9ABe+/9kkQElkd/W+G7ymZUersKF3ABF7DRAVBeHA5isTMkvDBBEeCChH0CmHknDIzqEyJxlA07es8qscbS3iiG9yyIt7oW2MznleEGSPdRthSicRW5tSjopypX87MMmCkHjyy2q3DLToDqIerQMfw6VRJZ0N+RhPXmyTqgox2qQ7cUmCkL682qs0GZPbALmNVHwP44sqXhbbJaJEmk+rMfrpGtmk0aGRl8e/KDdgzabC0KvmR66YVn2+Nr1gmzW5hgHInWSwAAAABJRU5ErkJggg==" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
-    const iconUtensils = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAaElEQVR42u3WMQqAMAxA0US8/5Xj5qC0tuhSeX8TWniUEIyQpF45c7iq6ryYmU/frbs3xOVsr221Fwb+Dbg1pzPz64WBgYGBx/4zRnfx7A6OiNi/WP5vEUYCGBgYGBgYGBgYGBhY0godOnYUWA3H3MEAAAAASUVORK5CYII=" width="22" height="22" alt="" style="vertical-align:middle;display:inline-block;">`;
+    const iconChef = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACAUlEQVR42u2dUY7CMAwFscUp6P2P1l5j92slhGCBJi+2k/Ev6uKMZp9Di4hdEtbtdvs5c91xHJZtLVYZaAXgNhPQjMBtBbCRoG0lsBGgbUWwI0HbymBHgHbgans3wGptduBq1+TA1a7NgatdowFWm8sOXO3a/UJJy7FXa7EDVwvZgauF7MDVQmbIicsq2Lvv+8vXtm1LvT+2zHD/A5sN9CvI14z/Vt+Afbwmg9FvMzjS3jNwe17fe+B5dXMzQf4IcJS9vaFEQH7G7jqLtVlz2aLsjTBsFOj7HcV1JmMzGu0j7c0yfNR93LP0FcyN7MdXhDuyL272jACszN+s9qr7+2OKwZUjIru9I/rEYLXBPBLS7ocxmG0agCkATwo42/OxiD4xuHpEZLdY3R8GM+QATAEYwACmTgLO+DMss9RxHIbB4gr56lTkh4/RT1kweARgcliTvxhMRDDkSgyaFAaTw/3zl4gYncEqi7PedFf09cjQKy+mQj9PjeXbPn3sJYOj9sHsKPrYi8GRn+SwuN3etwYDuQ0uEREZEVjcbu/HBgP5PBPv/QeB25DBQP6eAUMueshhcdvam2CtclOoRSqPeuMV4HbJ4Jkh91ibZ2lkRrjNGTxjLveWxbM3WBmuxOCKNpc7LKoK6PLHnWUFPd2BfVlAT3/k5Gjgyx6aqgKecQfzC5a0HLV7ZQYjAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
+    const iconTimer = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACiElEQVR42u2dURLCIAxEJdNTtPc/WnsN/eqM47RKK8luYPOtQN6sGwpUyoMw5nl+3vnetm2FLZeSGWgG4KUnoIzAywhgkaDLSGARoMuIYCNBl5HBRoA2wfUdexFYXzWb4PrmZILrm1thh7uu68/PLMtCaxeTVFuf7x3QJri+uU+MidTYwtnnve3CVcEjq/cuAxNcX8gmuL6QTXB9IZsw+UaRen0fRExwfa1CFoGYB0u97VQsBUcXOTb1Mqym/VPwtBYRqWCkeq9CrQkU7HcVW0bFotu9pWCEeiMBRKt5V/HErtoaMDVtresKsQyIgr1mBkwzjl3B4YB/QWgBIKKPS4AZ4HokHd3fEWRjsAWvZL+1G1Vg4Q8aV+B+Qqn57rIs0OmaIdUbVXDO+okAb97+i4aLhDzP81OraT1YBMsaAaJfQ9gDW3iO00ZRL6p/eXBWwEc/O5bF8KNxeNmEFCyLyB1T5sFn2BC1nmDKIuTBvMG2Hd+lB78vPWYBPm3bVjKdRcukZNcdjcjJPPNDkIpcb0UOreLo/m33ipH90mOcO1MbQUXIfuXB2QEjd3Rr+vO2Mfv0jB4hR8OlOh/sDRk9a7Ez8pGVGnEAO0K9jwfgJZjeT1f+BMwA+S4E9AL8kQNAAF+xhVYn3CNmDNWA2SBneKo8q1/Q9eA9aU/QtHtykf+xiziAHaHerxYRaRUtrQP1utZZUG4ZvUPK9q7yZQWjVJwhamzUWjUkuH8AFuT7LMyrYcG9AVjRcB4sFbfJnf4PmrOCbWIRI6j53xwNPYCe4TYrcj1CbpVTczDZfbm1WIx9gJnhuig4o5rTXRaVBXT6685YQXd3YR8L6O6vnIwGPuylqV7AGWcwL4CnkBwirl6oAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
+    const iconUtensils = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAABxUlEQVR42u2dXY7CMAwGsbWnaO9/tOYayxurRYgW4r8k4zeQWpLR6HNSEJFbwdq27feb61prUm0uMjLQEYDLTEArApcVwGaClpXAZoCWFcFGgpaVwUaAVuD6jl0A62uzAtd3Tgpc37kpcH3nKID1zWUFru/c9Ua5lmKvr8UKXF/IClxfyApcX8g0ucwmh739FitwfSH/RA/mOI5/r/d9v/ze1Xs+17trUyICe+0spslFG4y9thZjcKTB2GtvMQZHGYy9PhZjcOZWmQLw6U4tcxf3AEz++uUwETF7RLx6UHP28AbA1B9g8tc3hzGYiBi7wr/ReF6Xvmpo2WtXDAZwrd0cgDGYAjCAAUwBGMAUgIMBV/wbllmqtSYYTEQAmDoDTA775C8GExEApq4CJoft8xeDoyMCi23txeCMJofFdvZicNYyDYtt7MXggHprKr+87LP31GCiog8uEZHV5LDYxt7LBgP5eyZqfUPgdmQwkD9nQJPLbnJY3Df3LlirbER6pNKsD14BrkkGzwzZYm5aZSAzwu3O4Blz2VoWrT7AkeG6GDyizcMdFjUK6OGPO6sKeroD+6qAnv7IyWjgyx6a6gW84grmDsjk4N9qdPVcAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
 
     const headerCell = (icon, label, value, padStart, padEnd, border) => `
         <td style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
-          <div style="${iconCircleStyle}">${icon}</div>
+          ${icon}
           <span style="${iconLabelStyle}">${label}</span>
           <span style="${iconValueStyle}">${value}</span>
         </td>`;
@@ -275,7 +274,7 @@ ${prepHtml}
   </div>
 
   <div style="${cardStyle}padding:20px 24px;text-align:center;">
-    <a href="https://www.duxhumanhealth.com/collagen-advanced/p" target="_blank" rel="noopener" style="display:inline-block;color:#1a1a1a;font-family:${fontStack};font-weight:700;font-size:16px;text-decoration:none;border-bottom:2px solid #1a1a1a;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
+    <a href="https://professional.dux-company.com/content/receitas" target="_blank" rel="noopener" style="display:inline-block;color:#1a1a1a;font-family:${fontStack};font-weight:700;font-size:16px;text-decoration:none;border-bottom:2px solid #1a1a1a;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
   </div>
 
 </div>
@@ -287,6 +286,15 @@ ${prepHtml}
   function updateOutput() {
     currentHtml = generateHtml();
     const iframe = $('#preview-frame');
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.body) return;
+        // Mede altura real do conteúdo + 40px (padding inferior)
+        const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 4;
+        iframe.style.height = h + 'px';
+      } catch (e) {}
+    };
     iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#e5e5e5;margin:0;padding:20px 0;}</style></head><body>${currentHtml}</body></html>`;
     $('#code-pane').textContent = currentHtml;
   }
