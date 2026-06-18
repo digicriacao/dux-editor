@@ -317,9 +317,9 @@ ${fontBlock}
     //   mobile (@media max-width:640px): flex-direction:column (1 coluna)
     // ================================================================
 
-    // Desktop: layout inline (display:flex + width:50%) — não depende de CSS externo
-    // Mobile: CSS externo sobrescreve para display:block + width:100%
-    // O <link> é preservado pelo Incentify (confirmado em teste)
+    // Layout 100% via CSS externo — sem display/width inline nas colunas
+    // para não conflitar com o CSS externo (Incentify: inline sempre vence classe,
+    // mesmo com !important). O CSS externo define flex no desktop e block no mobile.
 
     const cssLink = `<link rel="stylesheet" href="https://digicriacao.github.io/dux-editor/news-responsive.css">`;
 
@@ -327,11 +327,11 @@ ${fontBlock}
 ${fontBlock}
 ${cssLink}
 <div style="max-width:1200px;margin:0 auto;padding:8px;">
-  <div class="dux-news-grid" style="display:flex;flex-direction:row;gap:12px;align-items:flex-start;">
-    <div class="dux-news-col" style="flex:1;min-width:0;width:50%;box-sizing:border-box;padding-right:6px;">
+  <div class="dux-news-grid">
+    <div class="dux-news-col">
 ${cardsEsq || '<!-- coluna vazia -->'}
     </div>
-    <div class="dux-news-col" style="flex:1;min-width:0;width:50%;box-sizing:border-box;padding-left:6px;">
+    <div class="dux-news-col">
 ${cardsDir || '<!-- coluna vazia -->'}
     </div>
   </div>
