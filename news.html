@@ -95,8 +95,6 @@
 (function() {
   'use strict';
 
-  // ====== ESTADO ======
-  // Cada card: { id, title, contentHtml }
   let cards = [];
   let nextId = 1;
 
@@ -104,7 +102,6 @@
     return { id: nextId++, title: title || '', contentHtml: contentHtml || '' };
   }
 
-  // ====== RENDERIZAR LISTA DE CARDS (FORMULÁRIO) ======
   function renderCardsList() {
     const list = $('#cards-list');
     list.innerHTML = '';
@@ -129,12 +126,10 @@
             <button data-action="remove" class="danger" title="Remover quadro">×</button>
           </div>
         </div>
-
         <div class="field" style="margin-bottom:10px;">
           <label class="field-label">Título</label>
           <input type="text" class="card-title" value="${escapeAttr(card.title)}" placeholder="Título do quadro">
         </div>
-
         <div class="field" style="margin-bottom:0;">
           <label class="field-label">Conteúdo</label>
           <div class="editor-toolbar">
@@ -153,7 +148,6 @@
       const editorEl = wrap.querySelector('.editor');
       editorEl.innerHTML = card.contentHtml || '';
 
-      // ====== BIND EVENTOS DO CARD ======
       const titleInput = wrap.querySelector('.card-title');
       titleInput.addEventListener('input', () => {
         const c = cards.find(x => x.id === card.id);
@@ -167,7 +161,6 @@
         updateOutput();
       });
 
-      // Botões de formatação
       wrap.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
         btn.addEventListener('mousedown', (e) => e.preventDefault());
         btn.addEventListener('click', () => {
@@ -180,7 +173,6 @@
         });
       });
 
-      // Ações de link
       wrap.querySelector('[data-action="link"]').addEventListener('mousedown', (e) => e.preventDefault());
       wrap.querySelector('[data-action="link"]').addEventListener('click', () => {
         LinkModal.open(editorEl, () => {
@@ -198,7 +190,6 @@
         });
       });
 
-      // Atalhos de teclado
       editorEl.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
           e.preventDefault();
@@ -226,7 +217,6 @@
         }
       });
 
-      // Ações de header do card
       wrap.querySelector('[data-action="up"]')?.addEventListener('click', () => moveCard(card.id, -1));
       wrap.querySelector('[data-action="down"]')?.addEventListener('click', () => moveCard(card.id, 1));
       wrap.querySelector('[data-action="remove"]')?.addEventListener('click', () => removeCard(card.id));
@@ -254,7 +244,6 @@
     cards.push(newCard('', '<p>Conteúdo do quadro...</p>'));
     renderCardsList();
     updateOutput();
-    // scroll para o último adicionado
     setTimeout(() => {
       const last = $('#cards-list').lastElementChild;
       last?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -262,7 +251,6 @@
     }, 50);
   });
 
-  // ====== LINK MODAL ======
   LinkModal.initModal();
 
   // ====== GERAR HTML ======
@@ -280,84 +268,68 @@ ${fontBlock}
 </div>`;
     }
 
-    // ====== ESTRATÉGIA MASONRY BALANCEADA ======
-    // Em vez de alternar 1→esq, 2→dir, mede o "peso" de cada card (tamanho do conteúdo)
-    // e coloca o próximo card sempre na coluna que estiver mais "vazia". Isso equilibra
-    // o tamanho final das colunas mesmo quando há cards muito grandes e muito pequenos.
-
+    // Masonry balanceado
     function cardWeight(card) {
-      // Estima a altura visual: cada caractere conta como 1, título conta dobrado, listas e
-      // parágrafos adicionam quebras de linha. Não é exato, mas é uma boa aproximação.
       const titleLen = (card.title || '').length * 2;
       const textOnly = (card.contentHtml || '').replace(/<[^>]+>/g, '').trim();
       const breaks   = ((card.contentHtml || '').match(/<(p|li|h\d|br)/g) || []).length * 40;
-      return titleLen + textOnly.length + breaks + 120; // +120 = padding + título base
+      return titleLen + textOnly.length + breaks + 120;
     }
 
-    const colEsq = [];
-    const colDir = [];
-    let pesoEsq = 0;
-    let pesoDir = 0;
-    validCards.forEach((card) => {
+    const colEsq = [], colDir = [];
+    let pesoEsq = 0, pesoDir = 0;
+    validCards.forEach(card => {
       const w = cardWeight(card);
-      if (pesoEsq <= pesoDir) {
-        colEsq.push(card); pesoEsq += w;
-      } else {
-        colDir.push(card); pesoDir += w;
-      }
+      if (pesoEsq <= pesoDir) { colEsq.push(card); pesoEsq += w; }
+      else                    { colDir.push(card); pesoDir += w; }
     });
 
-    // Estilos dos cards
-    const cardStyle = `background-color:#ffffff;border-radius:14px;padding:24px 26px;margin-bottom:12px;font-family:${fontStack};color:#1a1a1a;`;
-    const titleStyle = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;margin:0 0 12px 0;line-height:1.3;`;
-    const contentWrapStyle = `font-family:${fontStack};font-size:16px;line-height:1.5;color:#1a1a1a;`;
+    const cardStyle      = `background-color:#ffffff;border-radius:14px;padding:24px 26px;margin-bottom:12px;font-family:${fontStack};color:#1a1a1a;`;
+    const titleStyle     = `font-family:${fontStack};font-weight:700;font-size:18px;color:#0a0a0a;margin:0 0 12px 0;line-height:1.3;`;
+    const contentWrapStyle = `font-family:${fontStack};font-size:18px;line-height:1.6;color:#1a1a1a;`;
 
-    // Renderiza um card individual
     function renderCard(card, isLast) {
       const tmpDiv = document.createElement('div');
       tmpDiv.innerHTML = card.contentHtml || '';
       const contentInline = serializeEditorToInline(tmpDiv, fontStack, { boldUnderline: false });
       const styleFinal = isLast ? cardStyle.replace('margin-bottom:12px;', 'margin-bottom:0;') : cardStyle;
-      return `      <div style="${styleFinal}">
-        <div style="${titleStyle}">${escapeHtml(card.title)}</div>
-        <div style="${contentWrapStyle}">${contentInline}</div>
-      </div>`;
+      const titleHtml  = card.title.trim() ? `<div style="${titleStyle}">${escapeHtml(card.title)}</div>` : '';
+      return `<div style="${styleFinal}">${titleHtml}<div style="${contentWrapStyle}">${contentInline}</div></div>`;
     }
 
     const cardsEsq = colEsq.map((c, i) => renderCard(c, i === colEsq.length - 1)).join('\n');
     const cardsDir = colDir.map((c, i) => renderCard(c, i === colDir.length - 1)).join('\n');
 
-    // Media query para mobile (1 coluna)
-    const mediaStyle = `<style>
-@media (max-width:640px){
-  .dux-news-col{display:block !important;width:100% !important;padding:0 !important;}
-  .dux-news-col + .dux-news-col{margin-top:12px !important;}
-}
-</style>`;
-
-    // Estrutura: <table> com 2 <td>'s lado a lado, cada um empilhando seus cards
-    const colStyleEsq = `width:50%;vertical-align:top;padding-right:6px;`;
-    const colStyleDir = `width:50%;vertical-align:top;padding-left:6px;`;
+    // ================================================================
+    // LAYOUT RESPONSIVO SEM MEDIA QUERY — técnica "fluid columns"
+    //
+    // Cada coluna é um <div> com display:inline-block + width:calc(50% - 7px)
+    // + min-width:280px. Quando a largura disponível não comporta 2 × 280px,
+    // o segundo bloco cai automaticamente para a linha seguinte — sem JS,
+    // sem media query, sem CSS externo.
+    //
+    // O wrapper usa font-size:0 para eliminar o espaço em branco entre
+    // inline-blocks, e cada coluna redefine font-size:initial.
+    //
+    // Compatibilidade: funciona em todos os clientes que respeitam
+    // display:inline-block (todos os browsers modernos e clientes de e-mail
+    // que suportam CSS básico). O Incentify usa um WebView moderno, então
+    // funciona sem problema.
+    // ================================================================
 
     return `<!-- News DUX -->
 ${fontBlock}
-${mediaStyle}
-<div style="max-width:1200px;margin:0 auto;padding:8px;background:transparent;font-family:${fontStack};">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
-    <tr>
-      <td class="dux-news-col" style="${colStyleEsq}">
+<div style="max-width:1200px;margin:0 auto;padding:8px;background:transparent;font-size:0;line-height:0;">
+  <div style="display:inline-block;width:calc(50% - 7px);min-width:280px;vertical-align:top;padding-right:6px;font-size:initial;line-height:normal;box-sizing:border-box;">
 ${cardsEsq || '<!-- coluna vazia -->'}
-      </td>
-      <td class="dux-news-col" style="${colStyleDir}">
+  </div><!--
+  --><div style="display:inline-block;width:calc(50% - 7px);min-width:280px;vertical-align:top;padding-left:6px;font-size:initial;line-height:normal;box-sizing:border-box;">
 ${cardsDir || '<!-- coluna vazia -->'}
-      </td>
-    </tr>
-  </table>
+  </div>
 </div>
 <!-- Fim News DUX -->`;
   }
 
-  // ====== PREVIEW ======
   let currentHtml = '';
   function updateOutput() {
     currentHtml = generateHtml();
@@ -395,27 +367,18 @@ ${cardsDir || '<!-- coluna vazia -->'}
     showToast('Arquivo baixado!');
   });
 
-  // ====== SALVAR / CARREGAR ======
   function getDataForSave() {
-    return {
-      cards: cards.map(c => ({ title: c.title, contentHtml: c.contentHtml }))
-    };
+    return { cards: cards.map(c => ({ title: c.title, contentHtml: c.contentHtml })) };
   }
 
   function loadData(data) {
     nextId = 1;
-    if (Array.isArray(data.cards)) {
-      cards = data.cards.map(c => newCard(c.title, c.contentHtml));
-    } else {
-      cards = [];
-    }
+    cards = Array.isArray(data.cards) ? data.cards.map(c => newCard(c.title, c.contentHtml)) : [];
     renderCardsList();
     updateOutput();
   }
 
-  function newData() {
-    loadData({ cards: [] });
-  }
+  function newData() { loadData({ cards: [] }); }
 
   initSaveToolbar({
     tipo: 'news',
@@ -425,9 +388,7 @@ ${cardsDir || '<!-- coluna vazia -->'}
     fileNamePrefix: 'news-dux'
   });
 
-  // ====== INICIALIZAR (estado vazio) ======
   newData();
-
 })();
 </script>
 

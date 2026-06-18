@@ -20,7 +20,6 @@
     <a href="index.html" class="header-back">← Voltar ao início</a>
   </header>
 
-  <!-- Toolbar de salvar/carregar -->
   <div class="toolbar">
     <input type="text" id="save-name" class="toolbar-input" placeholder="Nome da receita (ex: Pudim de chia)">
     <select id="load-select"></select>
@@ -41,7 +40,7 @@
       <div class="panel-body">
 
         <div class="info-box">
-          <strong>Fonte Barlow</strong> via Google Fonts. <strong>Salvar/Carregar</strong> guarda no navegador — use <strong>Exportar</strong> para backup.
+          <strong>Fonte Barlow</strong> via Google Fonts. <strong>Salvar/Carregar</strong> guarda no GitHub Gist — use <strong>Exportar</strong> para backup.
         </div>
 
         <div class="field">
@@ -128,7 +127,6 @@
 (function() {
   'use strict';
 
-  // ====== ESTADO ======
   let ingredients = [];
   const editor = $('#editor');
 
@@ -141,7 +139,7 @@
       row.className = 'ingredient-row';
       row.innerHTML = `
         <input type="text" value="${escapeAttr(ing)}" data-idx="${i}">
-        <button class="btn-icon" data-remove="${i}" ${ingredients.length===1?'disabled':''} title="Remover">×</button>
+        <button class="btn-icon" data-remove="${i}" ${ingredients.length === 1 ? 'disabled' : ''} title="Remover">×</button>
       `;
       list.appendChild(row);
     });
@@ -197,7 +195,6 @@
     RichEditor.updateToolbarState($$('.tb-btn[data-cmd]'));
   }
 
-  // ====== LINK ======
   LinkModal.initModal();
   $('#btn-link').addEventListener('mousedown', (e) => e.preventDefault());
   $('#btn-link').addEventListener('click', () => LinkModal.open(editor, updateOutput));
@@ -207,69 +204,75 @@
   // ====== GERAR HTML ======
   function generateHtml() {
     const difficulty = escapeHtml($('#f-difficulty').value);
-    const prep = escapeHtml($('#f-prep').value);
-    const yld = escapeHtml($('#f-yield').value);
+    const prep       = escapeHtml($('#f-prep').value);
+    const yld        = escapeHtml($('#f-yield').value);
 
     const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
     const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
 
-    // SEM media query — layout único que funciona de 320px até 1200px+
-    // O wrapper externo tem max-width:720px, então o conteúdo sempre fica num "envelope" legível.
-    // O cabeçalho tem ícone em cima + texto embaixo (estilo mobile-first).
-
-    // Ingredientes em <div> flex
+    // Ingredientes
     const ingItems = ingredients.filter(i => i.trim()).map((ing, idx, arr) => {
       const isLast = idx === arr.length - 1;
-      return `      <div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '14px'};font-family:${fontStack};">
-        <div style="flex-shrink:0;width:9px;height:9px;background-color:#1a1a1a;border-radius:50%;margin:9px 16px 0 4px;"></div>
-        <div style="flex:1;font-family:${fontStack};font-size:17px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
-      </div>`;
+      return `<div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '14px'};font-family:${fontStack};">
+  <div style="flex-shrink:0;width:9px;height:9px;background-color:#1a1a1a;border-radius:50%;margin:9px 16px 0 4px;"></div>
+  <div style="flex:1;font-family:${fontStack};font-size:17px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
+</div>`;
     }).join('\n');
 
     const prepHtml = serializeEditorToInline(editor, fontStack, { boldUnderline: false });
 
-    const cardStyle = `background-color:#ffffff;border-radius:18px;padding:24px;margin:0 auto 16px auto;max-width:720px;font-family:${fontStack};color:#1a1a1a;`;
-    const badgeStyle = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:20px;padding:7px 20px;border-radius:999px;margin-bottom:16px;`;
-    const wrapperStyle = `max-width:720px;margin:0 auto;padding:12px;background:transparent;font-family:${fontStack};`;
+    const wrapperStyle  = `max-width:720px;margin:0 auto;padding:12px;background:transparent;font-family:${fontStack};`;
+    const cardStyle     = `background-color:#ffffff;border-radius:18px;padding:24px;margin:0 auto 16px auto;max-width:720px;font-family:${fontStack};color:#1a1a1a;`;
+    const badgeStyle    = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:20px;padding:7px 20px;border-radius:999px;margin-bottom:16px;`;
 
-    // Cabeçalho — ícone em cima centralizado, texto embaixo. Tamanhos médios que funcionam em qualquer largura.
-    const headerCellStyle = (border) => `width:33.33%;padding:0 8px;${border ? 'border-right:1px solid #d8d8d8;' : ''}vertical-align:top;text-align:center;font-family:${fontStack};`;
-    const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:10px;color:#888888;letter-spacing:1.2px;display:block;text-transform:uppercase;margin-bottom:2px;`;
-    const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:14px;color:#0a0a0a;line-height:1.2;display:block;`;
+    // ================================================================
+    // CABEÇALHO RESPONSIVO SEM MEDIA QUERY — técnica "fluid columns"
+    //
+    // Cada célula do cabeçalho (Dificuldade/Preparo/Rendimento) usa
+    // display:inline-block + width:calc(33.33% - 10px) + min-width:120px.
+    // Em telas largas: 3 itens na mesma linha.
+    // Em telas estreitas (<~380px): o 3º item cai para a linha seguinte.
+    // Em telas muito estreitas: cada item ocupa 100% e ficam empilhados.
+    //
+    // O wrapper usa font-size:0 para eliminar o gap entre inline-blocks.
+    // ================================================================
 
-    const iconChef = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACAUlEQVR42u2dUY7CMAwFscUp6P2P1l5j92slhGCBJi+2k/Ev6uKMZp9Di4hdEtbtdvs5c91xHJZtLVYZaAXgNhPQjMBtBbCRoG0lsBGgbUWwI0HbymBHgHbgans3wGptduBq1+TA1a7NgatdowFWm8sOXO3a/UJJy7FXa7EDVwvZgauF7MDVQmbIicsq2Lvv+8vXtm1LvT+2zHD/A5sN9CvI14z/Vt+Afbwmg9FvMzjS3jNwe17fe+B5dXMzQf4IcJS9vaFEQH7G7jqLtVlz2aLsjTBsFOj7HcV1JmMzGu0j7c0yfNR93LP0FcyN7MdXhDuyL272jACszN+s9qr7+2OKwZUjIru9I/rEYLXBPBLS7ocxmG0agCkATwo42/OxiD4xuHpEZLdY3R8GM+QATAEYwACmTgLO+DMss9RxHIbB4gr56lTkh4/RT1kweARgcliTvxhMRDDkSgyaFAaTw/3zl4gYncEqi7PedFf09cjQKy+mQj9PjeXbPn3sJYOj9sHsKPrYi8GRn+SwuN3etwYDuQ0uEREZEVjcbu/HBgP5PBPv/QeB25DBQP6eAUMueshhcdvam2CtclOoRSqPeuMV4HbJ4Jkh91ibZ2lkRrjNGTxjLveWxbM3WBmuxOCKNpc7LKoK6PLHnWUFPd2BfVlAT3/k5Gjgyx6aqgKecQfzC5a0HLV7ZQYjAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
-    const iconTimer = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACiElEQVR42u2dURLCIAxEJdNTtPc/WnsN/eqM47RKK8luYPOtQN6sGwpUyoMw5nl+3vnetm2FLZeSGWgG4KUnoIzAywhgkaDLSGARoMuIYCNBl5HBRoA2wfUdexFYXzWb4PrmZILrm1thh7uu68/PLMtCaxeTVFuf7x3QJri+uU+MidTYwtnnve3CVcEjq/cuAxNcX8gmuL6QTXB9IZsw+UaRen0fRExwfa1CFoGYB0u97VQsBUcXOTb1Mqym/VPwtBYRqWCkeq9CrQkU7HcVW0bFotu9pWCEeiMBRKt5V/HErtoaMDVtresKsQyIgr1mBkwzjl3B4YB/QWgBIKKPS4AZ4HokHd3fEWRjsAWvZL+1G1Vg4Q8aV+B+Qqn57rIs0OmaIdUbVXDO+okAb97+i4aLhDzP81OraT1YBMsaAaJfQ9gDW3iO00ZRL6p/eXBWwEc/O5bF8KNxeNmEFCyLyB1T5sFn2BC1nmDKIuTBvMG2Hd+lB78vPWYBPm3bVjKdRcukZNcdjcjJPPNDkIpcb0UOreLo/m33ipH90mOcO1MbQUXIfuXB2QEjd3Rr+vO2Mfv0jB4hR8OlOh/sDRk9a7Ez8pGVGnEAO0K9jwfgJZjeT1f+BMwA+S4E9AL8kQNAAF+xhVYn3CNmDNWA2SBneKo8q1/Q9eA9aU/QtHtykf+xiziAHaHerxYRaRUtrQP1utZZUG4ZvUPK9q7yZQWjVJwhamzUWjUkuH8AFuT7LMyrYcG9AVjRcB4sFbfJnf4PmrOCbWIRI6j53xwNPYCe4TYrcj1CbpVTczDZfbm1WIx9gJnhuig4o5rTXRaVBXT6685YQXd3YR8L6O6vnIwGPuylqV7AGWcwL4CnkBwirl6oAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
-    const iconUtensils = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAABxUlEQVR42u2dXY7CMAwGsbWnaO9/tOYayxurRYgW4r8k4zeQWpLR6HNSEJFbwdq27feb61prUm0uMjLQEYDLTEArApcVwGaClpXAZoCWFcFGgpaVwUaAVuD6jl0A62uzAtd3Tgpc37kpcH3nKID1zWUFru/c9Ua5lmKvr8UKXF/IClxfyApcX8g0ucwmh739FitwfSH/RA/mOI5/r/d9v/ze1Xs+17trUyICe+0spslFG4y9thZjcKTB2GtvMQZHGYy9PhZjcOZWmQLw6U4tcxf3AEz++uUwETF7RLx6UHP28AbA1B9g8tc3hzGYiBi7wr/ReF6Xvmpo2WtXDAZwrd0cgDGYAjCAAUwBGMAUgIMBV/wbllmqtSYYTEQAmDoDTA775C8GExEApq4CJoft8xeDoyMCi23txeCMJofFdvZicNYyDYtt7MXggHprKr+87LP31GCiog8uEZHV5LDYxt7LBgP5eyZqfUPgdmQwkD9nQJPLbnJY3Df3LlirbER6pNKsD14BrkkGzwzZYm5aZSAzwu3O4Blz2VoWrT7AkeG6GDyizcMdFjUK6OGPO6sKeroD+6qAnv7IyWjgyx6a6gW84grmDsjk4N9qdPVcAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:inline-block;border:0;margin-bottom:8px;">`;
+    const iconChef     = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACAUlEQVR42u2dUY7CMAwFscUp6P2P1l5j92slhGCBJi+2k/Ev6uKMZp9Di4hdEtbtdvs5c91xHJZtLVYZaAXgNhPQjMBtBbCRoG0lsBGgbUWwI0HbymBHgHbgans3wGptduBq1+TA1a7NgatdowFWm8sOXO3a/UJJy7FXa7EDVwvZgauF7MDVQmbIicsq2Lvv+8vXtm1LvT+2zHD/A5sN9CvI14z/Vt+Afbwmg9FvMzjS3jNwe17fe+B5dXMzQf4IcJS9vaFEQH7G7jqLtVlz2aLsjTBsFOj7HcV1JmMzGu0j7c0yfNR93LP0FcyN7MdXhDuyL272jACszN+s9qr7+2OKwZUjIru9I/rEYLXBPBLS7ocxmG0agCkATwo42/OxiD4xuHpEZLdY3R8GM+QATAEYwACmTgLO+DMss9RxHIbB4gr56lTkh4/RT1kweARgcliTvxhMRDDkSgyaFAaTw/3zl4gYncEqi7PedFf09cjQKy+mQj9PjeXbPn3sJYOj9sHsKPrYi8GRn+SwuN3etwYDuQ0uEREZEVjcbu/HBgP5PBPv/QeB25DBQP6eAUMueshhcdvam2CtclOoRSqPeuMV4HbJ4Jkh91ibZ2lkRrjNGTxjLveWxbM3WBmuxOCKNpc7LKoK6PLHnWUFPd2BfVlAT3/k5Gjgyx6aqgKecQfzC5a0HLV7ZQYjAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
+    const iconTimer    = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAACiElEQVR42u2dURLCIAxEJdNTtPc/WnsN/eqM47RKK8luYPOtQN6sGwpUyoMw5nl+3vnetm2FLZeSGWgG4KUnoIzAywhgkaDLSGARoMuIYCNBl5HBRoA2wfUdexFYXzWb4PrmZILrm1thh7uu68/PLMtCaxeTVFuf7x3QJri+uU+MidTYwtnnve3CVcEjq/cuAxNcX8gmuL6QTXB9IZsw+UaRen0fRExwfa1CFoGYB0u97VQsBUcXOTb1Mqym/VPwtBYRqWCkeq9CrQkU7HcVW0bFotu9pWCEeiMBRKt5V/HErtoaMDVtresKsQyIgr1mBkwzjl3B4YB/QWgBIKKPS4AZ4HokHd3fEWRjsAWvZL+1G1Vg4Q8aV+B+Qqn57rIs0OmaIdUbVXDO+okAb97+i4aLhDzP81OraT1YBMsaAaJfQ9gDW3iO00ZRL6p/eXBWwEc/O5bF8KNxeNmEFCyLyB1T5sFn2BC1nmDKIuTBvMG2Hd+lB78vPWYBPm3bVjKdRcukZNcdjcjJPPNDkIpcb0UOreLo/m33ipH90mOcO1MbQUXIfuXB2QEjd3Rr+vO2Mfv0jB4hR8OlOh/sDRk9a7Ez8pGVGnEAO0K9jwfgJZjeT1f+BMwA+S4E9AL8kQNAAF+xhVYn3CNmDNWA2SBneKo8q1/Q9eA9aU/QtHtykf+xiziAHaHerxYRaRUtrQP1utZZUG4ZvUPK9q7yZQWjVJwhamzUWjUkuH8AFuT7LMyrYcG9AVjRcB4sFbfJnf4PmrOCbWIRI6j53xwNPYCe4TYrcj1CbpVTczDZfbm1WIx9gJnhuig4o5rTXRaVBXT6685YQXd3YR8L6O6vnIwGPuylqV7AGWcwL4CnkBwirl6oAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
+    const iconUtensils = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAABxUlEQVR42u2dXY7CMAwGsbWnaO9/tOYayxurRYgW4r8k4zeQWpLR6HNSEJFbwdq27feb61prUm0uMjLQEYDLTEArApcVwGaClpXAZoCWFcFGgpaVwUaAVuD6jl0A62uzAtd3Tgpc37kpcH3nKID1zWUFru/c9Ua5lmKvr8UKXF/IClxfyApcX8g0ucwmh739FitwfSH/RA/mOI5/r/d9v/ze1Xs+17trUyICe+0spslFG4y9thZjcKTB2GtvMQZHGYy9PhZjcOZWmQLw6U4tcxf3AEz++uUwETF7RLx6UHP28AbA1B9g8tc3hzGYiBi7wr/ReF6Xvmpo2WtXDAZwrd0cgDGYAjCAAUwBGMAUgIMBV/wbllmqtSYYTEQAmDoDTA775C8GExEApq4CJoft8xeDoyMCi23txeCMJofFdvZicNYyDYtt7MXggHprKr+87LP31GCiog8uEZHV5LDYxt7LBgP5eyZqfUPgdmQwkD9nQJPLbnJY3Df3LlirbER6pNKsD14BrkkGzwzZYm5aZSAzwu3O4Blz2VoWrT7AkeG6GDyizcMdFjUK6OGPO6sKeroD+6qAnv7IyWjgyx6a6gW84grmDsjk4N9qdPVcAAAAAElFTkSuQmCC" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
 
-    const headerCell = (icon, label, value, padStart, padEnd, border) => `
-        <td style="${headerCellStyle(border)}${padStart ? 'padding-left:0;' : ''}${padEnd ? 'padding-right:0;' : ''}">
-          ${icon}
-          <span style="${iconLabelStyle}">${label}</span>
-          <span style="${iconValueStyle}">${value}</span>
-        </td>`;
+    const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:10px;color:#888888;letter-spacing:1.2px;display:block;text-transform:uppercase;margin-bottom:2px;text-align:center;`;
+    const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:14px;color:#0a0a0a;line-height:1.2;display:block;text-align:center;`;
+
+    // Cada item do cabeçalho: inline-block para empilhar automaticamente
+    // min-width:100px garante que em telas muito estreitas o texto não fique ilegível
+    const headerItemStyle = (borderRight) =>
+      `display:inline-block;width:calc(33.33% - 4px);min-width:100px;vertical-align:top;text-align:center;padding:12px 4px;font-family:${fontStack};font-size:0;box-sizing:border-box;${borderRight ? 'border-right:1px solid #d8d8d8;' : ''}`;
+
+    const headerBlock = (icon, label, value, borderRight) =>
+      `<div style="${headerItemStyle(borderRight)}">${icon}<span style="${iconLabelStyle}">${label}</span><span style="${iconValueStyle}">${value}</span></div>`;
 
     return `<!-- Receita DUX -->
 ${fontBlock}
 <div style="${wrapperStyle}">
 
-  <div style="${cardStyle}padding:20px 22px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
-      <tr>${headerCell(iconChef, 'DIFICULDADE', difficulty, true, false, true)}${headerCell(iconTimer, 'PREPARO', prep, false, false, true)}${headerCell(iconUtensils, 'RENDIMENTO', yld, false, true, false)}
-      </tr>
-    </table>
+  <div style="${cardStyle}padding:20px 16px;">
+    <div style="text-align:center;font-size:0;line-height:0;">
+      ${headerBlock(iconChef, 'DIFICULDADE', difficulty || '—', true)}${headerBlock(iconTimer, 'PREPARO', prep || '—', true)}${headerBlock(iconUtensils, 'RENDIMENTO', yld || '—', false)}
+    </div>
   </div>
 
   <div style="${cardStyle}">
     <div style="${badgeStyle}">Ingredientes</div>
     <div style="font-family:${fontStack};">
-${ingItems}
+${ingItems || '<div style="color:#888;font-size:16px;font-family:' + fontStack + ';">Nenhum ingrediente.</div>'}
     </div>
   </div>
 
   <div style="${cardStyle}">
     <div style="${badgeStyle}">Modo de preparo</div>
     <div style="font-family:${fontStack};">
-${prepHtml}
+${prepHtml || '<p style="color:#888;font-size:16px;font-family:' + fontStack + ';">Sem modo de preparo.</p>'}
     </div>
   </div>
 
@@ -281,7 +284,6 @@ ${prepHtml}
 <!-- Fim Receita DUX -->`;
   }
 
-  // ====== PREVIEW / CÓDIGO ======
   let currentHtml = '';
   function updateOutput() {
     currentHtml = generateHtml();
@@ -290,7 +292,6 @@ ${prepHtml}
       try {
         const doc = iframe.contentDocument;
         if (!doc || !doc.body) return;
-        // Mede altura real do conteúdo + 40px (padding inferior)
         const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 4;
         iframe.style.height = h + 'px';
       } catch (e) {}
@@ -324,7 +325,6 @@ ${prepHtml}
     showToast('Arquivo baixado!');
   });
 
-  // ====== SALVAR / CARREGAR ======
   function getDataForSave() {
     return {
       difficulty: $('#f-difficulty').value,
@@ -337,8 +337,8 @@ ${prepHtml}
 
   function loadData(data) {
     $('#f-difficulty').value = data.difficulty || '';
-    $('#f-prep').value = data.prep || '';
-    $('#f-yield').value = data.yield || '';
+    $('#f-prep').value       = data.prep || '';
+    $('#f-yield').value      = data.yield || '';
     ingredients = Array.isArray(data.ingredients) ? [...data.ingredients] : [''];
     if (ingredients.length === 0) ingredients = [''];
     editor.innerHTML = data.preparation || '';
@@ -347,13 +347,7 @@ ${prepHtml}
   }
 
   function newData() {
-    loadData({
-      difficulty: '',
-      prep: '',
-      yield: '',
-      ingredients: [''],
-      preparation: ''
-    });
+    loadData({ difficulty: '', prep: '', yield: '', ingredients: [''], preparation: '' });
   }
 
   initSaveToolbar({
@@ -364,9 +358,7 @@ ${prepHtml}
     fileNamePrefix: 'receitas-dux'
   });
 
-  // ====== INICIALIZAR (estado vazio) ======
   newData();
-
 })();
 </script>
 

@@ -1,19 +1,13 @@
 /* ============ DUX Ferramentas - JavaScript compartilhado ============ */
 
 // ===== GitHub Gist config =====
-// O Gist ID NÃO é secreto (é só um identificador de URL). Pode ficar no código.
 const GIST_ID = 'd35f1173dab7eb9fe5a6cf8c8cfb364e';
 
-// Token padrão da plataforma — montado em runtime, em partes invertidas,
-// para evitar a detecção automática do GitHub.
-// AVISO: qualquer pessoa com acesso ao código pode reconstruir esse token.
-// Use apenas em ferramentas internas com dados não-sensíveis.
 function _defaultToken() {
   const parts = ['9iaKj3Uwwew7k', 'oWIlFUueN9R3VyR', 'Y591eORm_phg'];
   return parts.join('').split('').reverse().join('');
 }
 
-// Permite que cada pessoa configure seu próprio token (sobrescreve o padrão)
 function getGistToken() {
   return localStorage.getItem('dux_gist_token') || _defaultToken();
 }
@@ -67,11 +61,6 @@ window.downloadFile = function(content, filename, mime) {
 };
 
 // ============ GitHub Gist Storage ============
-// Estrutura do Gist:
-//   receitas.json → { "Nome da receita": { ...dados }, ... }
-//   news.json     → { "Nome da news":    { ...dados }, ... }
-
-// Cache em memória para evitar fetches repetidos
 let _gistCache = null;
 
 async function _readGist() {
@@ -113,19 +102,16 @@ async function _writeGist(tipo, data) {
 }
 
 window.DB = {
-  // Lista todos os itens de um tipo, ordenados por nome
   async list(tipo) {
     const all = await _readGist();
     const bucket = all[tipo] || {};
     return Object.keys(bucket)
       .sort((a, b) => a.localeCompare(b, 'pt'))
-      .map(nome => ({ id: nome, nome })); // id === nome no Gist
+      .map(nome => ({ id: nome, nome }));
   },
 
-  // Busca os dados completos de um item pelo nome (id = nome)
   async get(id) {
     const all = await _readGist();
-    // id é o nome no modelo Gist
     for (const tipo of ['receita', 'news']) {
       if (all[tipo]?.[id] !== undefined) {
         return { id, nome: id, dados: all[tipo][id] };
@@ -134,18 +120,15 @@ window.DB = {
     return null;
   },
 
-  // Salva (upsert) — cria ou sobrescreve pelo nome
   async save(tipo, nome, dados) {
     const all = await _readGist();
     const bucket = all[tipo] || {};
     bucket[nome] = dados;
     await _writeGist(tipo, bucket);
-    return nome; // id = nome
+    return nome;
   },
 
-  // Remove um item pelo nome
   async remove(id) {
-    // Precisamos saber o tipo — tentamos nos dois buckets
     const all = await _readGist();
     let changed = false;
     for (const tipo of ['receita', 'news']) {
@@ -159,7 +142,6 @@ window.DB = {
     if (!changed) throw new Error(`Item "${id}" não encontrado`);
   },
 
-  // Exporta todos os itens de um tipo como arquivo JSON
   async exportAll(tipo, filename) {
     const all = await _readGist();
     const bucket = all[tipo] || {};
@@ -167,7 +149,6 @@ window.DB = {
     return Object.keys(bucket).length;
   },
 
-  // Importa itens de um arquivo JSON { nome: dados }
   async importFromFile(tipo, file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -192,9 +173,8 @@ window.DB = {
 
 // ============ Setup do token (modal) ============
 window.TokenSetup = {
-  // Cria o modal e o botão na toolbar (chamar em cada página)
   init() {
-    if ($('#token-modal')) return; // já existe
+    if ($('#token-modal')) return;
     const modalHtml = `
 <div class="modal-backdrop" id="token-modal">
   <div class="modal" style="max-width:520px;">
@@ -208,128 +188,109 @@ window.TokenSetup = {
       <input type="password" id="token-input" placeholder="(token do GitHub)" autocomplete="off">
     </div>
     <div style="font-size:12px; color:#94a3b8; margin-bottom: 12px;">
-      Já existe um token padrão configurado. Use este campo apenas se quiser sobrescrever com o seu próprio token.
-      Para criar um novo: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:#60a5fa;">github.com/settings/tokens</a> → Generate new (classic) → marcar apenas <code>gist</code>.
+      Gerar em <a href="https://github.com/settings/tokens" target="_blank" style="color:#93c5fd;">github.com/settings/tokens</a>
+      → <em>Generate new token (classic)</em> → marcar apenas <code>gist</code>.
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="token-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="token-save-btn">Salvar token</button>
+      <button class="btn btn-danger" id="token-clear">Limpar token</button>
+      <button class="btn btn-primary" id="token-save">Salvar token</button>
     </div>
   </div>
 </div>`;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    // Adiciona botão "⚙" na toolbar se existir
-    const toolbar = document.querySelector('.toolbar');
-    if (toolbar && !$('#btn-token-config')) {
-      const btn = document.createElement('button');
-      btn.id = 'btn-token-config';
-      btn.className = 'btn btn-ghost';
-      btn.title = 'Configurar token de acesso';
-      btn.textContent = '⚙';
-      btn.style.fontSize = '16px';
-      btn.style.minWidth = '36px';
-      btn.addEventListener('click', () => this.open());
-      toolbar.appendChild(btn);
-    }
-
-    // Eventos do modal
-    $('#token-cancel').addEventListener('click', () => this.close());
-    $('#token-modal').addEventListener('click', (e) => { if (e.target === $('#token-modal')) this.close(); });
-    $('#token-save-btn').addEventListener('click', () => this.save());
-    $('#token-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); this.save(); }
-      if (e.key === 'Escape') this.close();
+    $('#token-cancel')?.addEventListener('click', () => $('#token-modal').classList.remove('open'));
+    $('#token-modal')?.addEventListener('click', (e) => { if (e.target === $('#token-modal')) $('#token-modal').classList.remove('open'); });
+    $('#token-clear')?.addEventListener('click', () => {
+      clearGistToken();
+      $('#token-modal').classList.remove('open');
+      showToast('Token removido — usando o padrão');
     });
-
-    // Se não tem token, abre o modal automaticamente
-    if (!getGistToken()) {
-      setTimeout(() => this.open(), 400);
-    }
+    $('#token-save')?.addEventListener('click', () => {
+      const val = $('#token-input').value.trim();
+      if (!val) { $('#token-input').focus(); return; }
+      setGistToken(val);
+      _gistCache = null;
+      $('#token-modal').classList.remove('open');
+      showToast('Token salvo!');
+    });
+    $('#token-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('#token-save').click();
+      if (e.key === 'Escape') $('#token-modal').classList.remove('open');
+    });
   },
-
   open() {
-    $('#token-input').value = getGistToken();
-    $('#token-modal').classList.add('open');
-    setTimeout(() => $('#token-input').focus(), 50);
-  },
-
-  close() { $('#token-modal').classList.remove('open'); },
-
-  save() {
-    const v = $('#token-input').value.trim();
-    if (!v) { $('#token-input').focus(); return; }
-    if (!/^gh[ps]_[A-Za-z0-9]{30,}$/.test(v)) {
-      if (!confirm('O token não parece ter o formato padrão (ghp_...). Salvar mesmo assim?')) return;
-    }
-    setGistToken(v);
-    _gistCache = null;
-    this.close();
-    showToast('Token salvo! Recarregando...');
-    setTimeout(() => location.reload(), 800);
+    if ($('#token-input')) $('#token-input').value = '';
+    $('#token-modal')?.classList.add('open');
+    setTimeout(() => $('#token-input')?.focus(), 50);
   }
 };
 
-
 // ============ Toolbar de salvar/carregar ============
-// opts = { tipo, getDataFn, loadDataFn, newDataFn, fileNamePrefix }
-window.initSaveToolbar = function(opts) {
-  const { tipo, getDataFn, loadDataFn, newDataFn, fileNamePrefix } = opts;
-  let currentId = null; // id do item carregado no momento
-
-  // Inicializa o modal de configuração de token
+window.initSaveToolbar = function({ tipo, getDataFn, loadDataFn, newDataFn, fileNamePrefix }) {
   TokenSetup.init();
 
-  // Mostra/esconde loading na toolbar
-  function setLoading(on) {
-    const bar = document.querySelector('.toolbar');
-    if (bar) bar.style.opacity = on ? '0.6' : '1';
-    const btns = document.querySelectorAll('.toolbar button');
-    btns.forEach(b => b.disabled = on);
+  // Adiciona botão ⚙ na toolbar
+  const toolbar = $('.toolbar');
+  if (toolbar) {
+    const gearBtn = document.createElement('button');
+    gearBtn.className = 'btn btn-ghost';
+    gearBtn.title = 'Configurar token GitHub';
+    gearBtn.textContent = '⚙';
+    gearBtn.addEventListener('click', () => TokenSetup.open());
+    toolbar.appendChild(gearBtn);
   }
 
-  // Atualiza o dropdown com a lista do Gist
+  let currentId = null;
+  let isLoading = false;
+
+  function setLoading(v) {
+    isLoading = v;
+    document.querySelectorAll('.toolbar button').forEach(b => b.disabled = v);
+    if ($('#load-select')) $('#load-select').disabled = v;
+  }
+
   async function refreshSelect() {
     const sel = $('#load-select');
     if (!sel) return;
-    sel.innerHTML = '<option value="">— Carregando... —</option>';
     try {
       const items = await DB.list(tipo);
-      sel.innerHTML = '<option value="">— Carregar salvo —</option>' +
-        items.map(i => `<option value="${escapeAttr(i.id)}" data-nome="${escapeAttr(i.nome)}">${escapeHtml(i.nome)}</option>`).join('');
+      sel.innerHTML = '<option value="">— carregar salvo —</option>';
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
     } catch (err) {
-      sel.innerHTML = '<option value="">— Erro ao carregar —</option>';
-      showToast('Erro ao conectar: ' + (err?.message || err), 4000);
-      console.error('[DUX] Erro ao listar do Gist:', err);
+      sel.innerHTML = '<option value="">— erro ao carregar —</option>';
     }
   }
 
-  // Inicializar
   refreshSelect();
 
-  // Nova
+  // Novo
   $('#btn-new')?.addEventListener('click', () => {
-    if (!confirm('Limpar a tela e começar uma nova?')) return;
+    if (!confirm('Limpar tudo e começar do zero?')) return;
     currentId = null;
-    newDataFn();
-    $('#save-name').value = '';
+    if ($('#save-name')) $('#save-name').value = '';
     if ($('#load-select')) $('#load-select').value = '';
-    showToast('Pronto para um novo');
+    newDataFn();
+    showToast('Novo criado');
   });
 
-  // Carregar (ao selecionar no dropdown)
+  // Carregar
   $('#load-select')?.addEventListener('change', async (e) => {
     const id = e.target.value;
     if (!id) return;
-    const opt = e.target.selectedOptions[0];
-    const nome = opt?.dataset?.nome || '';
     setLoading(true);
     try {
       const row = await DB.get(id);
-      if (!row) { showToast('Não encontrado'); return; }
-      loadDataFn(row.dados);
+      if (!row) { showToast('Item não encontrado', 3000); return; }
       currentId = row.id;
-      $('#save-name').value = row.nome;
+      if ($('#save-name')) $('#save-name').value = row.nome;
+      loadDataFn(row.dados);
       showToast(`Carregado: ${row.nome}`);
     } catch (err) {
       showToast('Erro ao carregar', 3000);
@@ -369,7 +330,7 @@ window.initSaveToolbar = function(opts) {
       await DB.remove(currentId);
       currentId = null;
       await refreshSelect();
-      $('#save-name').value = '';
+      if ($('#save-name')) $('#save-name').value = '';
       showToast(`Excluído: ${nome}`);
     } catch (err) {
       showToast('Erro ao excluir', 3000);
@@ -508,6 +469,9 @@ window.LinkModal = {
 };
 
 // ============ Serializar editor -> HTML inline ============
+// CORRIGIDO: font-size e font-family explícitos em TODOS os elementos,
+// inclusive li, strong, em, a — sem depender de herança CSS
+// (o Incentify pode quebrar herança ao sanitizar o HTML).
 window.serializeEditorToInline = function(editor, fontStack, options) {
   options = options || {};
   const clone = editor.cloneNode(true);
@@ -523,20 +487,29 @@ window.serializeEditorToInline = function(editor, fontStack, options) {
   if (!html) return '';
   if (!/^<(p|ul|ol|h\d)/.test(html)) html = '<p>' + html + '</p>';
 
-  const pStyle = `font-family:${fontStack};font-size:18px;font-weight:400;line-height:1.5;margin:0 0 14px 0;color:#1a1a1a;`;
-  const ulStyle = `font-family:${fontStack};font-size:18px;font-weight:400;line-height:1.5;margin:0 0 14px 0;padding:0;list-style:none;color:#1a1a1a;`;
-  const liStyle = `position:relative;padding-left:20px;margin-bottom:6px;`;
-  const strongStyle = options.boldUnderline ? 'font-weight:700;text-decoration:underline;text-underline-offset:3px;' : 'font-weight:700;';
-  const emStyle = 'font-style:italic;';
-  const aStyle = 'color:#1a1a1a;text-decoration:underline;text-underline-offset:3px;';
+  // Todos os tamanhos explícitos em cada elemento — sem herança
+  const fontSize = '18px';
+  const pStyle    = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;color:#1a1a1a;`;
+  const ulStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;padding:0;list-style:none;color:#1a1a1a;`;
+  // li: font-size e font-family explícitos para não depender de herança
+  const liStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;color:#1a1a1a;position:relative;padding-left:20px;margin-bottom:8px;`;
+  const strongStyle = options.boldUnderline
+    ? `font-family:${fontStack};font-size:${fontSize};font-weight:700;text-decoration:underline;text-underline-offset:3px;`
+    : `font-family:${fontStack};font-size:${fontSize};font-weight:700;`;
+  const emStyle   = `font-family:${fontStack};font-size:${fontSize};font-style:italic;`;
+  const aStyle    = `font-family:${fontStack};font-size:${fontSize};color:#1a1a1a;text-decoration:underline;text-underline-offset:3px;`;
 
-  html = html.replace(/<p>/g, `<p style="${pStyle}">`);
-  html = html.replace(/<ul>/g, `<ul style="${ulStyle}">`);
-  html = html.replace(/<li>/g, `<li style="${liStyle}"><span style="position:absolute;left:4px;top:9px;width:7px;height:7px;background-color:#1a1a1a;border-radius:50%;"></span>`);
+  html = html.replace(/<p>/g,      `<p style="${pStyle}">`);
+  html = html.replace(/<ul>/g,     `<ul style="${ulStyle}">`);
+  html = html.replace(/<li>/g,     `<li style="${liStyle}"><span style="position:absolute;left:4px;top:10px;width:7px;height:7px;background-color:#1a1a1a;border-radius:50%;display:inline-block;"></span>`);
   html = html.replace(/<strong>/g, `<strong style="${strongStyle}">`);
-  html = html.replace(/<em>/g, `<em style="${emStyle}">`);
-  html = html.replace(/<a\s+href="([^"]*)"[^>]*>/g, (m, href) => `<a href="${escapeAttr(href)}" target="_blank" rel="noopener" style="${aStyle}">`);
-  html = html.replace(/(margin:0 0 14px 0;)([^>]*>)(?=(?:(?!<(p|ul|ol|h\d)\b).)*$)/s, 'margin:0;$2');
+  html = html.replace(/<em>/g,     `<em style="${emStyle}">`);
+  html = html.replace(/<a\s+href="([^"]*)"[^>]*>/g, (m, href) =>
+    `<a href="${escapeAttr(href)}" target="_blank" rel="noopener" style="${aStyle}">`);
+
+  // Remove margin-bottom do último elemento de bloco
+  html = html.replace(/margin:0 0 14px 0;([^"]*"[^>]*>)((?:(?!<(?:p|ul|ol)\b).)*$)/s,
+    'margin:0;$1$2');
 
   return html;
 };
