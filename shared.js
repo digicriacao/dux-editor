@@ -475,6 +475,8 @@ window.LinkModal = {
 window.serializeEditorToInline = function(editor, fontStack, options) {
   options = options || {};
   const clone = editor.cloneNode(true);
+
+  // 1) Limpar atributos e normalizar tags b/i -> strong/em
   clone.querySelectorAll('*').forEach(el => {
     const tag = el.tagName.toLowerCase();
     const allowed = (tag === 'a') ? ['href'] : [];
@@ -483,30 +485,52 @@ window.serializeEditorToInline = function(editor, fontStack, options) {
     if (tag === 'i') { const s = document.createElement('em'); s.innerHTML = el.innerHTML; el.replaceWith(s); }
   });
 
+  // 2) Envolver nós de texto diretos dentro de <p> e <li> em <span color>
+  // para garantir que o texto nunca herde cor de links (problema do prose do Incentify)
+  const textColor = '#1a1a1a';
+  const spanColor = `color:${textColor};font-family:${fontStack};font-size:18px;font-weight:400;`;
+
+  function wrapTextNodes(container) {
+    // Só processa filhos diretos de <p> e <li>
+    const targets = container.querySelectorAll('p, li');
+    targets.forEach(el => {
+      [...el.childNodes].forEach(node => {
+        // Nó de texto com conteúdo real (não só espaço)
+        if (node.nodeType === 3 && node.textContent.trim()) {
+          const span = document.createElement('span');
+          span.setAttribute('data-txt', '1');
+          span.textContent = node.textContent;
+          node.replaceWith(span);
+        }
+      });
+    });
+  }
+
+  wrapTextNodes(clone);
+
   let html = clone.innerHTML.trim();
   if (!html) return '';
   if (!/^<(p|ul|ol|h\d)/.test(html)) html = '<p>' + html + '</p>';
 
-  // Todos os tamanhos explícitos em cada elemento — sem herança
   const fontSize = '18px';
-  const pStyle    = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;color:#1a1a1a;`;
-  const ulStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;padding:0;list-style:none;color:#1a1a1a;`;
-  // li: font-size e font-family explícitos para não depender de herança
-  // Bolinha como elemento inline antes do texto — sem position:absolute
-  // para não depender de position:relative (que o Incentify pode remover).
-  const liStyle   = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;color:#1a1a1a;margin-bottom:8px;list-style:none;display:flex;align-items:flex-start;`;
+  const pStyle      = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;color:${textColor};`;
+  const ulStyle     = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;margin:0 0 14px 0;padding:0;list-style:none;color:${textColor};`;
+  const liStyle     = `font-family:${fontStack};font-size:${fontSize};font-weight:400;line-height:1.6;color:${textColor};margin-bottom:8px;list-style:none;display:flex;align-items:flex-start;`;
   const strongStyle = options.boldUnderline
-    ? `font-family:${fontStack};font-size:${fontSize};font-weight:700;text-decoration:underline;text-underline-offset:3px;`
-    : `font-family:${fontStack};font-size:${fontSize};font-weight:700;`;
-  const emStyle   = `font-family:${fontStack};font-size:${fontSize};font-style:italic;`;
-  const aStyle    = `font-family:${fontStack};font-size:${fontSize};color:#1a1a1a;text-decoration:underline;text-underline-offset:3px;`;
+    ? `font-family:${fontStack};font-size:${fontSize};font-weight:700;color:${textColor};text-decoration:underline;text-underline-offset:3px;`
+    : `font-family:${fontStack};font-size:${fontSize};font-weight:700;color:${textColor};`;
+  const emStyle     = `font-family:${fontStack};font-size:${fontSize};font-style:italic;color:${textColor};`;
+  const aStyle      = `font-family:${fontStack};font-size:${fontSize};color:${textColor};text-decoration:underline;text-underline-offset:3px;`;
+  // span de texto: cor explícita para não herdar azul de links vizinhos
+  const spanTxtStyle = spanColor;
 
-  html = html.replace(/<p>/g,      `<p style="${pStyle}">`);
-  html = html.replace(/<ul>/g,     `<ul style="${ulStyle}">`);
-  html = html.replace(/<li>/g,     `<li style="${liStyle}"><span style="flex-shrink:0;width:7px;height:7px;background-color:#1a1a1a;border-radius:50%;margin-top:8px;margin-right:12px;display:inline-block;"></span><span style="flex:1;">`);
-  html = html.replace(/<\/li>/g,  `</span></li>`);
-  html = html.replace(/<strong>/g, `<strong style="${strongStyle}">`);
-  html = html.replace(/<em>/g,     `<em style="${emStyle}">`);
+  html = html.replace(/<p>/g,             `<p style="${pStyle}">`);
+  html = html.replace(/<ul>/g,            `<ul style="${ulStyle}">`);
+  html = html.replace(/<li>/g,            `<li style="${liStyle}"><span style="flex-shrink:0;width:7px;height:7px;background-color:${textColor};border-radius:50%;margin-top:8px;margin-right:12px;display:inline-block;"></span><span style="flex:1;color:${textColor};font-family:${fontStack};font-size:${fontSize};">`);
+  html = html.replace(/<\/li>/g,         `</span></li>`);
+  html = html.replace(/<strong>/g,        `<strong style="${strongStyle}">`);
+  html = html.replace(/<em>/g,            `<em style="${emStyle}">`);
+  html = html.replace(/<span data-txt="1">/g, `<span style="${spanTxtStyle}">`);
   html = html.replace(/<a\s+href="([^"]*)"[^>]*>/g, (m, href) =>
     `<a href="${escapeAttr(href)}" target="_blank" rel="noopener" style="${aStyle}">`);
 
