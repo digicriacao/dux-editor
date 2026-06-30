@@ -3,84 +3,370 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ferramentas DUX</title>
-<!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" href="favicon.png">
-<!-- OG / compartilhamento -->
-<meta property="og:title" content="Ferramentas DUX">
-<meta property="og:description" content="Gerador de HTML para receitas e news — DUX Human Health">
-<meta property="og:image" content="https://digicriacao.github.io/dux-editor/og-image.png">
-<meta property="og:url" content="https://digicriacao.github.io/dux-editor/">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://digicriacao.github.io/dux-editor/og-image.png">
+<title>DUX Editor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { font-family: 'Barlow', 'Helvetica Neue', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-  .hub { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
-  .hub-header { text-align: center; margin-bottom: 50px; }
-  .hub-header h1 { font-size: 36px; font-weight: 700; margin: 0 0 8px; color: #f8fafc; }
-  .hub-header p { font-size: 16px; color: #94a3b8; margin: 0; }
-  .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 720px) { .hub-grid { grid-template-columns: 1fr; } }
-  .hub-card {
-    display: block;
-    background: #1e293b;
-    border-radius: 14px;
-    padding: 32px;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-    border: 2px solid #334155;
-  }
-  .hub-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); border-color: #94a3b8; }
-  .hub-card-icon {
-    width: 56px; height: 56px; background: #f8fafc; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 18px;
-  }
-  .hub-card-icon svg { width: 28px; height: 28px; stroke: #0f172a; }
-  .hub-card h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; color: #f8fafc; }
-  .hub-card p { font-size: 14px; color: #94a3b8; margin: 0; line-height: 1.5; }
-  .hub-footer { text-align: center; margin-top: 40px; font-size: 12px; color: #64748b; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="hub">
-  <div class="hub-header">
-    <h1>Ferramentas DUX</h1>
-    <p>Geradores de HTML para o site DUX Human Health</p>
+<div class="app">
+  <header class="header">
+    <div class="header-left">
+      <h1>DUX Editor</h1>
+      <p>Gerador de receitas para o portal DUX Human Health.</p>
+    </div>
+
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="save-name" class="toolbar-input" placeholder="Nome da receita (ex: Pudim de chia)">
+    <select id="load-select"></select>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-success" id="btn-save">Salvar</button>
+    <button class="btn btn-secondary" id="btn-new">Nova</button>
+    <button class="btn btn-danger" id="btn-delete">Excluir</button>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-ghost" id="btn-export" title="Baixar todas as receitas em .json">⤓ Exportar</button>
+    <button class="btn btn-ghost" id="btn-import" title="Restaurar receitas de um .json">⤴ Importar</button>
+    <input type="file" id="file-import" accept=".json" style="display:none;">
   </div>
 
-  <div class="hub-grid">
-    <a href="receitas.html" class="hub-card">
-      <div class="hub-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>
-      </div>
-      <h2>Receitas</h2>
-      <p>Crie cards de receita com ingredientes, modo de preparo, dificuldade, tempo e rendimento.</p>
-    </a>
+  <div class="grid">
 
-    <a href="news.html" class="hub-card">
-      <div class="hub-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Dados da receita</div></div>
+      <div class="panel-body">
+
+        <div class="info-box">
+          <strong>Fonte Barlow</strong> via Google Fonts. <strong>Salvar/Carregar</strong> guarda no GitHub Gist — use <strong>Exportar</strong> para backup.
+        </div>
+
+        <div class="field">
+          <div class="row3">
+            <div>
+              <label class="field-label">Dificuldade</label>
+              <input type="text" id="f-difficulty" placeholder="ex: FÁCIL">
+            </div>
+            <div>
+              <label class="field-label">Preparo</label>
+              <input type="text" id="f-prep" placeholder="ex: 30 MIN">
+            </div>
+            <div>
+              <label class="field-label">Rendimento</label>
+              <input type="text" id="f-yield" placeholder="ex: 1 PORÇÃO">
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="field-label" style="margin:0;">Ingredientes</label>
+            <button class="btn-add" id="btn-add-ing">+ Adicionar</button>
+          </div>
+          <div id="ingredients-list"></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Modo de preparo</label>
+          <div class="editor-toolbar">
+            <button type="button" class="tb-btn" data-cmd="bold" title="Negrito (Ctrl+B)"><strong>B</strong></button>
+            <div class="tb-sep"></div>
+            <button type="button" class="tb-btn" id="btn-link" title="Inserir/editar link (Ctrl+K)">🔗</button>
+            <button type="button" class="tb-btn" id="btn-unlink" title="Remover link">⛌</button>
+            <div class="tb-hint">Use B para negrito • Ctrl+K para link</div>
+          </div>
+          <div class="editor" id="editor" contenteditable="true" data-placeholder="Escreva o modo de preparo aqui..."></div>
+        </div>
+
       </div>
-      <h2>News</h2>
-      <p>Crie blocos de conteúdo distribuídos automaticamente em 2 colunas, com texto rico e listas.</p>
-    </a>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="tabs">
+          <button class="tab active" data-view="preview">Preview</button>
+          <button class="tab" data-view="code">Código</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" id="btn-download">⤓ Baixar HTML</button>
+          <button class="btn btn-primary" id="btn-copy">📋 Copiar HTML</button>
+        </div>
+      </div>
+      <div class="preview-container" id="preview-pane"><iframe id="preview-frame"></iframe></div>
+      <div class="code-container" id="code-pane" style="display:none;"></div>
+    </div>
+
   </div>
 
-  <div class="hub-footer">
-    Os dados são salvos no navegador. Use "Exportar" para gerar backup.
+  <p class="footer">CSS inline + Barlow do Google Fonts. &nbsp;·&nbsp; <a href="news.html" style="color:#64748b;">Gerador de News</a></p>
+</div>
+
+<!-- Modal de link -->
+<div class="modal-backdrop" id="link-modal">
+  <div class="modal">
+    <h3 id="link-modal-title">Inserir link</h3>
+    <div class="field">
+      <label class="field-label">Texto exibido</label>
+      <input type="text" id="link-text" placeholder="Ex.: clique aqui">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="field-label">URL</label>
+      <input type="text" id="link-url" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="link-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="link-save">Aplicar</button>
+    </div>
   </div>
 </div>
+
+<script src="shared.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  let ingredients = [];
+  const editor = $('#editor');
+
+  // ====== INGREDIENTES ======
+  function renderIngredients() {
+    const list = $('#ingredients-list');
+    list.innerHTML = '';
+    ingredients.forEach((ing, i) => {
+      const row = document.createElement('div');
+      row.className = 'ingredient-row';
+      row.innerHTML = `
+        <input type="text" value="${escapeAttr(ing)}" data-idx="${i}">
+        <button class="btn-icon" data-remove="${i}" ${ingredients.length === 1 ? 'disabled' : ''} title="Remover">×</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        ingredients[+e.target.dataset.idx] = e.target.value;
+        updateOutput();
+      });
+    });
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        ingredients.splice(+e.currentTarget.dataset.remove, 1);
+        renderIngredients();
+        updateOutput();
+      });
+    });
+  }
+
+  $('#btn-add-ing').addEventListener('click', () => {
+    ingredients.push('');
+    renderIngredients();
+    updateOutput();
+    const inputs = $('#ingredients-list').querySelectorAll('input');
+    inputs[inputs.length - 1].focus();
+  });
+
+  // ====== EDITOR ======
+  RichEditor.init(editor, updateOutput);
+
+  $$('.tb-btn[data-cmd]').forEach(btn => {
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', () => {
+      RichEditor.applyCmd(btn.dataset.cmd, editor, updateOutput);
+      updateToolbarState();
+    });
+  });
+
+  editor.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      RichEditor.applyCmd('bold', editor, updateOutput);
+      updateToolbarState();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault(); LinkModal.open(editor, updateOutput);
+    }
+  });
+
+  editor.addEventListener('mouseup', updateToolbarState);
+  editor.addEventListener('keyup', updateToolbarState);
+
+  function updateToolbarState() {
+    RichEditor.updateToolbarState($$('.tb-btn[data-cmd]'));
+  }
+
+  LinkModal.initModal();
+  $('#btn-link').addEventListener('mousedown', (e) => e.preventDefault());
+  $('#btn-link').addEventListener('click', () => LinkModal.open(editor, updateOutput));
+  $('#btn-unlink').addEventListener('mousedown', (e) => e.preventDefault());
+  $('#btn-unlink').addEventListener('click', () => LinkModal.unlink(editor, updateOutput));
+
+  // ====== GERAR HTML ======
+  function generateHtml() {
+    const difficulty = escapeHtml($('#f-difficulty').value);
+    const prep       = escapeHtml($('#f-prep').value);
+    const yld        = escapeHtml($('#f-yield').value);
+
+    const fontStack = "'Barlow','Helvetica Neue',Arial,sans-serif";
+    const fontBlock = `<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">`;
+
+    // Ingredientes
+    const ingItems = ingredients.filter(i => i.trim()).map((ing, idx, arr) => {
+      const isLast = idx === arr.length - 1;
+      return `<div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '14px'};font-family:${fontStack};">
+  <div style="flex-shrink:0;width:9px;height:9px;background-color:#1a1a1a;border-radius:50%;margin:9px 16px 0 4px;"></div>
+  <div style="flex:1;font-family:${fontStack};font-size:17px;font-weight:400;line-height:1.4;color:#1a1a1a;">${escapeHtml(ing)}</div>
+</div>`;
+    }).join('\n');
+
+    const prepHtml = serializeEditorToInline(editor, fontStack, { boldUnderline: false });
+
+    const wrapperStyle  = `max-width:720px;margin:0 auto;padding:12px;background:transparent;font-family:${fontStack};`;
+    const cardStyle     = `background-color:#ffffff;border-radius:18px;padding:24px;margin:0 auto 16px auto;max-width:720px;font-family:${fontStack};color:#1a1a1a;`;
+    const badgeStyle    = `display:inline-block;background-color:#d9d9d9;color:#0a0a0a;font-family:${fontStack};font-weight:700;font-size:20px;padding:7px 20px;border-radius:999px;margin-bottom:16px;`;
+
+    // ================================================================
+    // CABEÇALHO RESPONSIVO SEM MEDIA QUERY — técnica "fluid columns"
+    //
+    // Cada célula do cabeçalho (Dificuldade/Preparo/Rendimento) usa
+    // display:inline-block + width:calc(33.33% - 10px) + min-width:120px.
+    // Em telas largas: 3 itens na mesma linha.
+    // Em telas estreitas (<~380px): o 3º item cai para a linha seguinte.
+    // Em telas muito estreitas: cada item ocupa 100% e ficam empilhados.
+    //
+    // O wrapper usa font-size:0 para eliminar o gap entre inline-blocks.
+    // ================================================================
+
+    const iconChef = `<img src="data:image/svg+xml;base64,PHN2ZyBpZD0iQ2FwYV8xIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1NTIuNDcgNTUyLjQ3IiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDU1Mi40NyA1NTIuNDciIHdpZHRoPSI1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbD0iIzFhMWExYSIgZD0ibTQxNC4zNTMgNjkuMDU5Yy01Ljk2OCAwLTEyLjEwNS42MDUtMTguMzc3IDEuNTI4LTIzLjc0Mi00MS45MTctNjguMjI5LTcwLjU4Ny0xMTkuNzQxLTcwLjU4N3MtOTUuOTk5IDI4LjY3MS0xMTkuNzQgNzAuNTg3Yy02LjI3Mi0uOTIzLTEyLjQwOS0xLjUyOC0xOC4zNzctMS41MjgtNzYuMTU3IDAtMTM4LjExOCA2MS45NDQtMTM4LjExOCAxMzguMTE3IDAgNDkuNzcxIDI2LjE4NCA5NC40ODQgNjkuMDU5IDExOS4yMDF2MTc0LjI5OWMwIDI4LjU2MSAyMy4yMzMgNTEuNzk0IDUxLjc5NCA1MS43OTRoMzEwLjc2NWMyOC41NjEgMCA1MS43OTQtMjMuMjMzIDUxLjc5NC01MS43OTR2LTE3NC4yOTljNDIuODc1LTI0LjcxNyA2OS4wNTktNjkuNDMgNjkuMDU5LTExOS4yMDEtLjAwMS03Ni4xNzMtNjEuOTYxLTEzOC4xMTctMTM4LjExOC0xMzguMTE3em0xNy4yNjQgNDQ4Ljg4MmgtMzEwLjc2NGMtOS41MjYgMC0xNy4yNjUtNy43NTYtMTcuMjY1LTE3LjI2NXYtNTEuNzk0aDM0NS4yOTR2NTEuNzk0YzAgOS41MDktNy43MzkgMTcuMjY1LTE3LjI2NSAxNy4yNjV6bTI3LjA3OC0yMTcuNTYyYy01Ljk4NSAyLjg2Ni05LjgxMyA4LjkzNi05LjgxMyAxNS41Nzl2OTguMzk1aC0zNDUuMjk0di05OC4zOTVjMC02LjY0My0zLjgyNy0xMi43MTItOS44MTMtMTUuNTc5LTM2LjU1Mi0xNy40NjctNTkuMjQ2LTUzLjE3Ny01OS4yNDYtOTMuMjAyIDAtNTcuMTIyIDQ2LjQ2Ni0xMDMuNTg4IDEwMy41ODgtMTAzLjU4OCAxLjQ2NyAwIDMuMjE2LjUxNiA0LjcxOS41OTQtMi43ODQgMTAuOTE5LTQuNzE5IDIyLjE2LTQuNzE5IDMzLjkzNSAwIDkuNTQzIDcuNzIyIDE3LjI2NSAxNy4yNjUgMTcuMjY1czE3LjI2NS03LjcyMiAxNy4yNjUtMTcuMjY1YzAtNTcuMTIyIDQ2LjQ2Ni0xMDMuNTg4IDEwMy41ODgtMTAzLjU4OHMxMDMuNTg4IDQ2LjQ2NiAxMDMuNTg4IDEwMy41ODhjMCA5LjU0MyA3LjcyMiAxNy4yNjUgMTcuMjY1IDE3LjI2NXMxNy4yNjUtNy43MjIgMTcuMjY1LTE3LjI2NWMwLTExLjc3NS0xLjkzNS0yMy4wMTYtNC43MTktMzMuOTM1IDEuNTAzLS4wNzggMy4yNTItLjU5NCA0LjcxOS0uNTk0IDU3LjEyMiAwIDEwMy41ODggNDYuNDY2IDEwMy41ODggMTAzLjU4OCAwIDQwLjAyNS0yMi42OTQgNzUuNzM1LTU5LjI0NiA5My4yMDJ6Ii8+PC9zdmc+" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
+    const iconTimer = `<img src="data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnOTQzIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDYuMzQ5OTk5OSA2LjM1MDAwMDEiIHdpZHRoPSI1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgaWQ9ImxheWVyMSIgZmlsbD0iIzFhMWExYSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC40NzYsMC40NzYpIHNjYWxlKDAuODUpIj48cGF0aCBpZD0icGF0aDIzMzAzIiBkPSJtMy4xNzYyODk3LjI2MzgwNzVjLTEuNjA0MjQ0IDAtMi45MTI0ODM5OCAxLjMwODI0LTIuOTEyNDgzOTggMi45MTI0ODRzMS4zMDgyMzk5OCAyLjkwOTkwMSAyLjkxMjQ4Mzk4IDIuOTA5OTAxYzEuNjA0MjQzIDAgMi45MDk5LTEuMzA1NjU3IDIuOTA5OS0yLjkwOTkwMWEuMjY0NTgzNDkuMjY0NTgzNDkgMCAwIDAgLS4yNjU2MTctLjI2NjEzNC4yNjQ1ODM0OS4yNjQ1ODM0OSAwIDAgMCAtLjI2MzU1LjI2NjEzNGMwIDEuMzE4MjYtMS4wNjI0NzMgMi4zODA3MzQtMi4zODA3MzMgMi4zODA3MzQtMS4zMTgyNjEgMC0yLjM4MzMxNjk4LTEuMDYyNDczLTIuMzgzMzE2OTgtMi4zODA3MzRzMS4wNjUwNTU5OC0yLjM4MzMxNyAyLjM4MzMxNjk4LTIuMzgzMzE3YS4yNjQ1ODM0OS4yNjQ1ODM0OSAwIDAgMCAuMjYzNTUtLjI2MzU1LjI2NDU4MzQ5LjI2NDU4MzQ5IDAgMCAwIC0uMjYzNTUtLjI2NTYxN3ptMS4wMDQwNzMuMTk4OTU0Yy0uMTAzMjgzLjAwMS0uMjAwODE2LjA2MjY4LS4yNDIzNjMuMTY0MzMxLS4wNTU3Ny4xMzUzNzYuMDA4Ni4yOTAzMjEuMTQ0MTc4LjM0NTcxNi4wMDMxLjAwMTMuMDA1MS4wMDMuMDA3Ny4wMDQxLjEzNTM3Mi4wNTczLjI5MTYyNi0uMDA2OC4zNDc3ODItLjE0MjYyNy4wNTYtLjEzNDgzNS0uMDA3OS0uMjg5NTU2LS4xNDI2MjctLjM0NTcxNi0uMDAzOC0uMDAxNi0uMDA4LS4wMDQzLS4wMTEzNy0uMDA1Ny0uMDMzODQtLjAxMzk0LS4wNjg5Mi0uMDIwNS0uMTAzMzUzLS4wMjAxNXptLjg2MDkyOS41NzI1NzVjLS4wNjk3My4wMDA1NzUtLjEzNjM4LjAyODU2LS4xODU1MTguMDc4MDMtLjEwMzg3Ni4xMDM0Mi0uMTAzODc2LjI3MTc1MiAwIC4zNzUxNzEuMDAyMi4wMDIyLjAwMzUuMDAzNS4wMDU3LjAwNTcuMTAyODc5LjEwNDQxNi4yNzEyMTIuMTA1NDA3LjM3NTE3MS4wMDIxLjEwMzg3Ni0uMTAzNDE5LjEwMzg3Ni0uMjcxNzUxIDAtLjM3NTE3MS0uMDAyNy0uMDAyNy0uMDA1LS4wMDUxLS4wMDc3LS4wMDc3LS4wNDk2MS0uMDQ5OTUtLjExNzE3Ny0uMDc3OTctLjE4NzU4My0uMDc4MDN6bS0xLjg2NTAwMi4yODczMjFhLjI2NDU4MzM2LjI2NDU4MzM2IDAgMCAwIC0uMjY2MTM0LjI2NTYxN3YxLjU4ODAxN2EuMjY0NjA5ODEuMjY0NjA5ODEgMCAwIDAgLjE0Njc2MS4yMzYxNjFsMS4wNTgzMzQuNTI5MTY3YS4yNjQ1ODMzNi4yNjQ1ODMzNiAwIDAgMCAuMzU1NTMzLS4xMTg4NTYuMjY0NTgzMzYuMjY0NTgzMzYgMCAwIDAgLS4xMTg4NTUtLjM1NTUzNGwtLjkxMjA4OS0uNDU1MjY5di0xLjQyMzY4NmEuMjY0NTgzMzYuMjY0NTgzMzYgMCAwIDAgLS4yNjM1NS0uMjY1NjE3em0yLjQ0MzI2Mi41Njg5NThjLS4wMzQ2NC0uMDAwMjAxLS4wNjk4OS4wMDY0LS4xMDM4Ny4wMjA2Ny0uMTM1ODUxLjA1NjE2LS4xOTk5My4yMTI0MTEtLjE0MjYyNy4zNDc3ODIuMDAxMy4wMDMyLjAwMy4wMDUuMDA0MS4wMDc3LjA1NTM5LjEzNTUyOS4yMTAzNDEuMjAwNDY1LjM0NTcxNi4xNDQ2OTQuMTM1NTMtLjA1NTM5LjIwMDQ2Ny0uMjEwMzQuMTQ0Njk0LS4zNDU3MTUtLjAwMTUtLjAwMzYtLjAwMjgtLjAwNjYtLjAwNDEtLjAwOTgtLjA0MTU0LS4xMDI0NTYtLjE0MDAwNS0uMTY0NzYtLjI0MzkxMy0uMTY1MzYyeiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9nPjwvc3ZnPg==" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
+    const iconUtensils = `<img src="data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZGF0YS1uYW1lPSJMYXllciAxIj48cGF0aCBmaWxsPSIjMWExYTFhIiBkPSJtNDc3Ljc0IDU1LjAzNC0uNy0uNDkxYTIyLjMgMjIuMyAwIDAgMCAtMzEuMDI3IDUuNDcybC02MC4wMjMgODUuNzIxLTcuNjMtNS4zMzYgNjUuOTE4LTk0LjE0MWExMiAxMiAwIDEgMCAtMTkuNjU5LTEzLjc2NmwtNjUuOTE5IDk0LjEzNi03LjYyOS01LjM0MiA2MC4wMjktODUuNzIzYTIyLjMgMjIuMyAwIDAgMCAtNS40NzUtMzEuMDI0bC0uNy0uNDk0YTIyLjEyNiAyMi4xMjYgMCAwIDAgLTI5IDIuOTg1bC05My42MDUgOTkuNTA1YTQ2LjE2IDQ2LjE2IDAgMCAwIC0xMS44NzUgNDIuMDIybDcuNDc2IDM2LjEyNGEyMi4zNjQgMjIuMzY0IDAgMCAxIC00LjczMSAxOS40MThsLTE2LjE3NCAxOS45NTgtMjkuMTU4LTMwLjE3YTIyLjU5IDIyLjU5IDAgMCAxIC02LjE1My0xMS40MDZjMTguNDQ0LTM4LjUyMSAxLjUxNy04NC45OS00NC45LTEyMi4yNDItMjEuMDc0LTE2LjkxNy00NS4zMzQtMjkuMzMtNjguMzA1LTM0Ljk1LTI2LjQ1Ny02LjQ3Ni00OS4wNjYtMy4wNTMtNjMuNjYzIDkuNjI3LTE0LjgzNyAxMi44OS0yMS44MzcgMzUuMTA0LTE5LjcxMyA2Mi41NTQgMS44NTUgMjMuOTg2IDEwLjI3IDUwLjE4NiAyMy42OTMgNzMuNzczIDIzLjk1MyA0Mi4wODkgNTcuNTA5IDY1LjYwOSA5MS40NjUgNjUuNjA2YTc0LjEgNzQuMSAwIDAgMCAxOS43MDgtMi42ODQgMjIuNTcgMjIuNTcgMCAwIDEgMTAuMjQ3IDguMDcybDM0LjA0MyA0Ni44OTMtMTA4LjYwMiAxMzQuMDA4YTQ3LjMzIDQ3LjMzIDAgMCAwIDkuNjIzIDY4LjU3bDE2LjY2MiAxMS42NjhhNDYuMTggNDYuMTggMCAwIDAgMjYuNzgyIDguNjIzIDQ4Ljk1MyA0OC45NTMgMCAwIDAgMTAuMjE1LTEuMSA0Ni4yMzYgNDYuMjM2IDAgMCAwIDMwLjczLTIxLjkzMmw3Mi4yNy0xMjAuMzgxIDczLjkwOSAxMDEuODEzYTQ2LjI0MiA0Ni4yNDIgMCAwIDAgMzIuNTI1IDE5LjE3IDUwLjE3NyA1MC4xNzcgMCAwIDAgNi4xMjkuMzggNDYuMDcxIDQ2LjA3MSAwIDAgMCAzMC4wNzItMTEuMWwxNS41ODEtMTMuMDc1YTQ3LjMyOSA0Ny4zMjkgMCAwIDAgMy42MTEtNjkuMTQ4bC0xMTAuMi0xMTQuMDMgMjEuMjIxLTM1LjM0OWEyMi4zNjIgMjIuMzYyIDAgMCAxIDE2LjYzMi0xMS4wNzhsMzYuNS01LjMzYTQ2LjE2IDQ2LjE2IDAgMCAwIDM1LjQyNi0yNS41M2w2MS40OS0xMjEuOTk0YTIyLjEyNCAyMi4xMjQgMCAwIDAgLTcuMTE2LTI4LjI4MnptLTMwOC42MjYgNDIxLjU4YTIzLjMzMiAyMy4zMzIgMCAwIDEgLTMzLjM4NSA3LjFsLTE2LjY2Mi0xMS42NjZhMjMuMzMxIDIzLjMzMSAwIDAgMSAtNC43NDQtMzMuOGwxMDQuNTUzLTEyOS4wMSAyNy43NjIgMzguMjQyem0yNDMuOTM4LTQ1Ljg4NGEyMi4yMiAyMi4yMiAwIDAgMSAtOC4zIDE2LjY1N2wtMTUuNTgzIDEzLjA3NGEyMy4zMyAyMy4zMyAwIDAgMSAtMzMuODc2LTQuMTY2bC0xNjUuNjM0LTIyOC4xNTZhNDYuMjE2IDQ2LjIxNiAwIDAgMCAtMjYuODc4LTE4LjE3OCAxMiAxMiAwIDAgMCAtNi41Ni4yNzhjLTE1LjU5MyA1LjE1Ny0zMS40MjUgMi44MTEtNDcuMDU3LTYuOTY5LTE0LjUyOS05LjA5Mi0yOC41NTMtMjQuNjgxLTM5LjQ4OS00My45LTExLjU0MS0yMC4yNzYtMTkuMDU3LTQzLjUxNC0yMC42MjMtNjMuNzUtMS41MjItMTkuNjgyIDIuNTcxLTM0LjgwNyAxMS41MjQtNDIuNTg2IDguNTQ4LTcuNDI5IDIzLjU0MS05IDQyLjIxNy00LjQzMiAxOS4zNTYgNC43MzYgNDAuODU5IDE1LjggNTguOTk0IDMwLjM1NSAyOS45NCAyNC4wMyA1NS4zODcgNjEuNzcgMzcuMDE2IDk1LjYyMWExMi4wMDggMTIuMDA4IDAgMCAwIC0xLjQzIDYuNDc2IDQ2LjIyNCA0Ni4yMjQgMCAwIDAgMTMuMjI3IDI5LjUxMmwxOTUuOTI5IDIwMi43MzRhMjIuMjE2IDIyLjIxNiAwIDAgMSA2LjUyMyAxNy40M3ptLTExLjExNi0yMzYuMjNhMjIuNDcgMjIuNDcgMCAwIDEgLTE3LjQ2MyAxMi41ODVsLTM2LjUgNS4zM2E0Ni41NCA0Ni41NCAwIDAgMCAtMzMuNzQxIDIyLjQ3M2wtMTcuOTEyIDI5LjgzNS0yMi41LTIzLjI4MiAxOC4wMTgtMjIuMjMzYTQ2LjU0NSA0Ni41NDUgMCAwIDAgOS41NzgtMzkuMzkzbC03LjQ3Ni0zNi4xMjRhMjIuNDY5IDIyLjQ2OSAwIDAgMSA1Ljg1My0yMC43MTRsODEuMzQ2LTg2LjQ3Mi01MS4wODEgNzIuOTQ5YTIxLjY1NSAyMS42NTUgMCAwIDAgNS4zMTMgMzAuMTM0bDM4Ljc5IDI3LjE2MWEyMS42NjIgMjEuNjYyIDAgMCAwIDMwLjEzMy01LjMxNGw1MS4wNzYtNzIuOTQzeiIvPjwvc3ZnPg==" width="44" height="44" alt="" style="display:block;margin:0 auto 8px;border:0;">`;
+
+    const iconLabelStyle = `font-family:${fontStack};font-weight:500;font-size:10px;color:#888888;letter-spacing:1.2px;display:block;text-transform:uppercase;margin-bottom:2px;text-align:center;`;
+    const iconValueStyle = `font-family:${fontStack};font-weight:700;font-size:14px;color:#0a0a0a;line-height:1.2;display:block;text-align:center;`;
+
+    // Cada item do cabeçalho: inline-block para empilhar automaticamente
+    // min-width:100px garante que em telas muito estreitas o texto não fique ilegível
+    // Cabeçalho: <table> com 3 colunas — compatível com Incentify, sem font-size:0
+    // Cada <td> tem width:33% e border-right nas primeiras 2 colunas.
+    // A <table> usa table-layout:fixed e width:100% para distribuir igualmente.
+    const headerBlock = (icon, label, value, borderRight) => {
+      const tdStyle = `width:33%;text-align:center;padding:12px 8px;vertical-align:top;font-family:${fontStack};${borderRight ? 'border-right:1px solid #d8d8d8;' : ''}`;
+      return `<td style="${tdStyle}">${icon}<span style="${iconLabelStyle}">${label}</span><span style="${iconValueStyle}">${value}</span></td>`;
+    };
+
+    return `<!-- Receita DUX -->
+${fontBlock}
+<div style="${wrapperStyle}">
+
+  <div style="${cardStyle}padding:20px 16px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+      <tr>
+        ${headerBlock(iconChef, 'DIFICULDADE', difficulty || '—', true)}
+        ${headerBlock(iconTimer, 'PREPARO', prep || '—', true)}
+        ${headerBlock(iconUtensils, 'RENDIMENTO', yld || '—', false)}
+      </tr>
+    </table>
+  </div>
+
+  <div style="${cardStyle}">
+    <div style="${badgeStyle}">Ingredientes</div>
+    <div style="font-family:${fontStack};">
+${ingItems || '<div style="color:#888;font-size:16px;font-family:' + fontStack + ';">Nenhum ingrediente.</div>'}
+    </div>
+  </div>
+
+  <div style="${cardStyle}">
+    <div style="${badgeStyle}">Modo de preparo</div>
+    <div style="font-family:${fontStack};">
+${prepHtml || '<p style="color:#888;font-size:16px;font-family:' + fontStack + ';">Sem modo de preparo.</p>'}
+    </div>
+  </div>
+
+  <div style="${cardStyle}padding:20px 24px;text-align:center;">
+    <a href="https://professional.dux-company.com/content/receitas" target="_blank" rel="noopener" style="display:inline-block;color:#1a1a1a;font-family:${fontStack};font-weight:700;font-size:16px;text-decoration:none;border-bottom:2px solid #1a1a1a;padding-bottom:3px;">Navegue e conheça mais Receitas DUXPRO!</a>
+  </div>
+
+</div>
+<!-- Fim Receita DUX -->`;
+  }
+
+  let currentHtml = '';
+  function updateOutput() {
+    currentHtml = generateHtml();
+    const iframe = $('#preview-frame');
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.body) return;
+        const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 4;
+        iframe.style.height = h + 'px';
+      } catch (e) {}
+    };
+    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#e5e5e5;margin:0;padding:20px 0;}</style></head><body>${currentHtml}</body></html>`;
+    $('#code-pane').textContent = currentHtml;
+  }
+
+  $$('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.dataset.view === 'preview') { $('#preview-pane').style.display = ''; $('#code-pane').style.display = 'none'; }
+      else { $('#preview-pane').style.display = 'none'; $('#code-pane').style.display = ''; }
+    });
+  });
+
+  ['#f-difficulty', '#f-prep', '#f-yield'].forEach(s => {
+    $(s).addEventListener('input', updateOutput);
+  });
+
+  $('#btn-copy').addEventListener('click', async () => {
+    await copyText(currentHtml);
+    showToast('HTML copiado!');
+  });
+
+  $('#btn-download').addEventListener('click', () => {
+    const full = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receita DUX</title><style>body { background: #e5e5e5; margin: 0; padding: 24px 0; min-height: 100vh; }</style></head><body>${currentHtml}</body></html>`;
+    const name = $('#save-name').value.trim() || 'receita-dux';
+    downloadFile(full, name.replace(/[^a-zA-Z0-9-_]/g, '_') + '.html');
+    showToast('Arquivo baixado!');
+  });
+
+  function getDataForSave() {
+    return {
+      difficulty: $('#f-difficulty').value,
+      prep: $('#f-prep').value,
+      yield: $('#f-yield').value,
+      ingredients: [...ingredients],
+      preparation: editor.innerHTML
+    };
+  }
+
+  function loadData(data) {
+    $('#f-difficulty').value = data.difficulty || '';
+    $('#f-prep').value       = data.prep || '';
+    $('#f-yield').value      = data.yield || '';
+    ingredients = Array.isArray(data.ingredients) ? [...data.ingredients] : [''];
+    if (ingredients.length === 0) ingredients = [''];
+    editor.innerHTML = data.preparation || '';
+    renderIngredients();
+    updateOutput();
+  }
+
+  function newData() {
+    loadData({ difficulty: '', prep: '', yield: '', ingredients: [''], preparation: '' });
+  }
+
+  initSaveToolbar({
+    tipo: 'receita',
+    getDataFn: getDataForSave,
+    loadDataFn: loadData,
+    newDataFn: newData,
+    fileNamePrefix: 'receitas-dux'
+  });
+
+  newData();
+})();
+</script>
 
 </body>
 </html>
